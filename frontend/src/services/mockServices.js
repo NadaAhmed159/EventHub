@@ -239,6 +239,29 @@ export const ticketService = {
     }
     return { data: ticket };
   },
+
+  async verifyTicketByQrCode(qrCode) {
+    await delay(300);
+    const ticket = mockTickets.find((t) => t.qrCode === qrCode);
+    if (!ticket) {
+      throw { status: 404, data: { message: 'Ticket not found' } };
+    }
+    const event = mockEvents.find((e) => e.id === ticket.eventId);
+    const participant = mockParticipants.find((p) => p.id === ticket.participantId);
+    return {
+      data: {
+        ticketId: ticket.id,
+        qrCode: ticket.qrCode,
+        eventId: event.id,
+        eventTitle: event.title,
+        eventDate: event.date,
+        venue: event.venue,
+        participantFullName: participant?.fullName || 'Unknown',
+        purchasedAt: ticket.bookingDate,
+        verifiedAtUtc: new Date().toISOString(),
+      },
+    };
+  },
 };
 
 // ============================================

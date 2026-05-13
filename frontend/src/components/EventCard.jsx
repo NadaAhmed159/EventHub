@@ -6,6 +6,7 @@ import { getEventCategory, getEventDate, getEventPrice, getEventImageUrl } from 
 export default function EventCard({ event, isSoldOut, isBooked = false }) {
   const { user } = useContext(AuthContext);
   const isAdmin = user?.applyAs === 'Admin';
+  const isOrganizer = user?.applyAs === 'EventOrganizer';
   const eventId = event?.eventId ?? event?.id;
   const formatDate = (dateString) => {
     if (!dateString) return 'TBD';
@@ -151,7 +152,7 @@ export default function EventCard({ event, isSoldOut, isBooked = false }) {
                 ${getEventPrice(event).toFixed(0)}
               </span>
             </div>
-            {!isAdmin && (
+            {!isAdmin && !isOrganizer && (
               <span style={{
                 color: isBooked ? '#087f5b' : '#E63946',
                 fontSize: '0.85rem',

@@ -10,6 +10,7 @@ import EventsList from './pages/public/EventsList';
 import EventDetail from './pages/public/EventDetail';
 import ContactSupport from './pages/public/ContactSupport';
 import ResetPassword from './pages/public/ResetPassword';
+import TicketVerify from './pages/public/TicketVerify';
 
 import Favorites from './pages/participant/Favorites';
 import MyTickets from './pages/participant/MyTickets';
@@ -61,6 +62,7 @@ function App() {
                   <Route path="/events/:id" element={<EventDetail />} />
                   <Route path="/contact" element={<ContactSupport />} />
                   <Route path="/reset-password" element={<ProtectedRoute element={<ResetPassword />} />} />
+                  <Route path="/verify-ticket/:qrCode" element={<TicketVerify />} />
 
                   {/* Participant Routes */}
                   <Route path="/favorites" element={<ProtectedRoute element={<Favorites />} requiredRole="Participant" />} />

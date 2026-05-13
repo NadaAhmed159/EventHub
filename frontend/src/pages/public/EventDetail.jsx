@@ -35,6 +35,8 @@ export default function EventDetail() {
   const [reviewSuccess, setReviewSuccess] = useState('');
 
   const isAdmin = user?.applyAs === 'Admin';
+  const isOrganizer = user?.applyAs === 'EventOrganizer';
+  const canBook = isAuthenticated && !isAdmin && !isOrganizer;
 
   const { data: favoriteRecords = [], isLoading: favoritesLoading } = useQuery({
     queryKey: ['user-favorites', user?.id],
@@ -155,7 +157,7 @@ export default function EventDetail() {
   const handleSubmitReview = async (event) => {
     event.preventDefault();
 
-    if (!hasPurchased || isAdmin) {
+    if (!hasPurchased || isAdmin || isOrganizer) {
       setReviewError('You can only review an event after booking it.');
       return;
     }
@@ -481,7 +483,7 @@ export default function EventDetail() {
               </div>
             )}
 
-            {!isAdmin && (
+            {canBook && (
               <button
                 type="button"
                 onClick={handleFavoriteToggle}
@@ -741,7 +743,7 @@ export default function EventDetail() {
                 overflow: 'hidden',
                 filter: hasPurchased ? 'blur(4px)' : 'none',
                 opacity: hasPurchased ? 0.6 : 1,
-                pointerEvents: hasPurchased || isAdmin ? 'none' : 'auto',
+                pointerEvents: hasPurchased || isAdmin || isOrganizer ? 'none' : 'auto',
                 transition: 'filter 0.35s ease, opacity 0.35s ease'
               }}>
                 <h2 style={{
@@ -751,20 +753,20 @@ export default function EventDetail() {
                   marginBottom: '1.25rem',
                   textAlign: 'center',
                 }}>
-                  {isAdmin ? 'Ticket Prices' : 'Select Tickets'}
+                  {isAdmin || isOrganizer ? 'Ticket Prices' : 'Select Tickets'}
                 </h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {ticketTiers.map((tier, idx) => (
                     <div
                       key={idx}
-                      onClick={() => { if (purchaseLoading || hasPurchased || isAdmin) return; setSelectedTicket(idx); }}
+                      onClick={() => { if (purchaseLoading || hasPurchased || isAdmin || isOrganizer) return; setSelectedTicket(idx); }}
                       style={{
                         padding: '1rem',
                         borderRadius: '10px',
                         border: selectedTicket === idx ? '2px solid #E63946' : '2px solid #e0e0e0',
                         backgroundColor: selectedTicket === idx ? '#fef2f2' : '#ffffff',
-                        cursor: purchaseLoading || hasPurchased || isAdmin ? 'default' : 'pointer',
+                        cursor: purchaseLoading || hasPurchased || isAdmin || isOrganizer ? 'default' : 'pointer',
                         transition: 'all 0.3s',
                       }}
                     >
@@ -794,7 +796,7 @@ export default function EventDetail() {
                   ))}
                 </div>
 
-                {!isAdmin && (
+                {canBook && (
                   <button
                     onClick={() => {
                       if (purchaseLoading) return;
@@ -826,7 +828,7 @@ export default function EventDetail() {
                   </button>
                 )}
 
-                {selectedTicket !== null && !isAdmin && (
+                {selectedTicket !== null && canBook && (
                   <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#666', marginTop: '0.75rem' }}>
                     Total: <strong style={{ color: '#E63946' }}>${(ticketTiers[selectedTicket].price).toFixed(0)}</strong>
                   </p>
@@ -884,7 +886,7 @@ export default function EventDetail() {
               )}
             </div>
 
-            {hasPurchased && !isAdmin && (
+            {hasPurchased && !isAdmin && !isOrganizer && (
               <button
                 onClick={() => setShowReviewModal(true)}
                 style={{
@@ -1210,7 +1212,7 @@ export default function EventDetail() {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#666' }}>Total paid</span><strong style={{ color: '#E63946' }}>${(purchase.totalPrice || 0).toFixed(2)}</strong></div>
             </div>
             <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
-              <img alt="QR code" src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(purchase.qrCode || purchase.id)}`} style={{ borderRadius: '8px' }} />
+              <img alt="QR code" src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`${window.location.origin}/verify-ticket/${purchase.qrCode || purchase.id}`)}`} style={{ borderRadius: '8px' }} />
             </div>
             <div style={{ textAlign: 'center' }}>
               <button onClick={() => { setShowBookingDetailsModal(false); navigate('/my-tickets'); }} style={{ padding: '0.65rem 1rem', borderRadius: '10px', backgroundColor: '#E63946', color: '#fff', border: 'none', fontWeight: '700', cursor: 'pointer' }}>Go to My Tickets</button>

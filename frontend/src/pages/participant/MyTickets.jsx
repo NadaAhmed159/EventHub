@@ -68,6 +68,13 @@ function normalizeBookedTicket(ticket, approvedEvents) {
 }
 
 function getTicketQrPayload(ticket) {
+  const qrCode = String(ticket?.qrCode || ticket?.id || '');
+  // Return full URL that can be scanned - when scanned, it will open the verification page
+  return `${window.location.origin}/verify-ticket/${encodeURIComponent(qrCode)}`;
+}
+
+function getTicketQrCode(ticket) {
+  // Return just the token for display purposes
   return String(ticket?.qrCode || ticket?.id || '');
 }
 
@@ -391,7 +398,7 @@ export default function MyTickets() {
                           Show this code at check-in.
                         </p>
                         <p style={{ margin: 0, color: '#7a7a7a', fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          Code: {getTicketQrPayload(ticket)}
+                          Code: {getTicketQrCode(ticket)}
                         </p>
                       </div>
                     </div>

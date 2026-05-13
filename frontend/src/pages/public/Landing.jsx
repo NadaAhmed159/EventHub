@@ -12,6 +12,7 @@ export default function Landing() {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const { isAuthenticated, user } = useContext(AuthContext);
   const isAdmin = user?.applyAs === 'Admin';
+  const isOrganizer = user?.applyAs === 'EventOrganizer';
   const { bookedEventIds } = useParticipantTickets(user?.id, isAuthenticated);
   const { data: liveEvents = [] } = useEvents({});
   const { data: liveCategories = [] } = useCategories();
@@ -137,7 +138,7 @@ export default function Landing() {
               <Link
                 to="/signup"
                 className="btn btn-secondary"
-                style={{ color: '#ffffff', borderColor: '#ffffff', textDecoration: 'none' }}
+                style={{ textDecoration: 'none' }}
               >
                 Create Account
               </Link>
@@ -271,7 +272,7 @@ export default function Landing() {
                 {currentEvent.description || 'Experience an amazing event with great atmosphere and unforgettable memories.'}
               </p>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                {!isAdmin && (
+                {!isAdmin && !isOrganizer && (
                   currentEventBooked ? (
                     <span
                       className="btn btn-primary"

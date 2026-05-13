@@ -474,14 +474,14 @@ button {
 
 .btn-secondary {
   background-color: transparent;
-  color: #E63946;
-  border: 2px solid #E63946;
+  color: #ffffff;
+  border: 2px solid #ffffff;
   text-decoration: none;
 }
 
 .btn-secondary:hover {
-  background-color: #E63946;
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #E63946;
 }
 
 /* ===== FORMS ===== */
