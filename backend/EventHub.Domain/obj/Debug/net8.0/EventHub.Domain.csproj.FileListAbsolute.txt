@@ -80,3 +80,16 @@ D:\all eventhub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.dll
 D:\all eventhub\backend\EventHub.Domain\obj\Debug\net8.0\refint\EventHub.Domain.dll
 D:\all eventhub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.pdb
 D:\all eventhub\backend\EventHub.Domain\obj\Debug\net8.0\ref\EventHub.Domain.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\bin\Debug\net8.0\EventHub.Domain.deps.json
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\bin\Debug\net8.0\EventHub.Domain.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\bin\Debug\net8.0\EventHub.Domain.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.csproj.AssemblyReference.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.AssemblyInfoInputs.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.AssemblyInfo.cs
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.csproj.CoreCompileInputs.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.sourcelink.json
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\refint\EventHub.Domain.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\EventHub.Domain.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.Domain\obj\Debug\net8.0\ref\EventHub.Domain.dll

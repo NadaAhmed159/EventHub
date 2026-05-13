@@ -12,7 +12,7 @@ export function useParticipantTickets(userId, enabled = true) {
 
   const tickets = useMemo(() => ticketsQuery.data || [], [ticketsQuery.data]);
   const bookedEventIds = useMemo(
-    () => new Set(tickets.map((ticket) => Number(ticket.eventId))),
+    () => new Set(tickets.map((ticket) => String(ticket.eventId))),
     [tickets]
   );
 
@@ -21,6 +21,6 @@ export function useParticipantTickets(userId, enabled = true) {
     tickets,
     bookedEventIds,
     bookedEventsCount: bookedEventIds.size,
-    hasBookedEvent: (eventId) => bookedEventIds.has(Number(eventId)),
+    hasBookedEvent: (eventId) => bookedEventIds.has(String(eventId)),
   };
 }

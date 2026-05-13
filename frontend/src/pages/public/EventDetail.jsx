@@ -7,7 +7,8 @@ import { NotificationContext } from '../../context/NotificationContext';
 import { eventService } from '../../services/eventService';
 import { favoriteService } from '../../services/favoriteService';
 import { ticketService } from '../../services/ticketService';
-import { getEventAvailableTickets, getEventCategory, getEventDate, getEventPrice, getEventTotalTickets } from '../../utils/eventUtils';
+import { reviewService } from '../../services/reviewService';
+import { getEventAvailableTickets, getEventCategory, getEventDate, getEventImageUrl, getEventPrice, getEventTotalTickets } from '../../utils/eventUtils';
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -22,6 +23,15 @@ export default function EventDetail() {
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [reviewSuccess, setReviewSuccess] = useState('');
+
+  const isAdmin = user?.applyAs === 'Admin';
 
   const { data: favoriteRecords = [], isLoading: favoritesLoading } = useQuery({
     queryKey: ['user-favorites', user?.id],
@@ -112,6 +122,32 @@ export default function EventDetail() {
     }
 
     favoriteMutation.mutate();
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    setReviewLoading(true);
+    setReviewError('');
+    setReviewSuccess('');
+
+    try {
+      await reviewService.submitReview({
+        eventId: id,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      setReviewSuccess('Review submitted successfully!');
+      setReviewComment('');
+      setTimeout(() => {
+        setShowReviewModal(false);
+        setReviewSuccess('');
+      }, 1500);
+      queryClient.invalidateQueries({ queryKey: ['event-reviews', id] });
+    } catch (err) {
+      setReviewError(err.response?.data?.message || err.response?.data || 'Failed to submit review.');
+    } finally {
+      setReviewLoading(false);
+    }
   };
 
   if (eventLoading) {
@@ -274,7 +310,7 @@ export default function EventDetail() {
           zIndex: 0,
         }}>
           <img
-            src={event.image}
+            src={getEventImageUrl(event)}
             alt={event.title}
             onError={(e) => {
               e.currentTarget.src = 'https://picsum.photos/seed/eventhub-fallback-detail/1200/800';
@@ -388,61 +424,65 @@ export default function EventDetail() {
             marginTop: '1.5rem',
           }}>
             {/* Price Badge */}
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#ffffff',
-              color: '#E63946',
-              padding: '0.5rem 1.5rem',
-              borderRadius: '30px',
-              fontSize: '1.25rem',
-              fontWeight: '700',
-              lineHeight: 1,
-              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-              animation: 'fadeInUp 0.6s ease-out 0.6s backwards',
-            }}>
-              From ${getEventPrice(event).toFixed(0)}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleFavoriteToggle}
-              disabled={favoriteMutation.isPending || favoritesLoading}
-              aria-pressed={isFavorited}
-              style={{
+            {!isAdmin && (
+              <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.6rem',
+                backgroundColor: '#ffffff',
+                color: '#E63946',
                 padding: '0.5rem 1.5rem',
                 borderRadius: '30px',
-                border: isFavorited ? '2px solid #ffffff' : '2px solid rgba(255,255,255,0.55)',
-                backgroundColor: isFavorited ? '#ffffff' : 'rgba(255,255,255,0.12)',
-                color: isFavorited ? '#E63946' : '#ffffff',
-                fontWeight: '700',
                 fontSize: '1.25rem',
+                fontWeight: '700',
                 lineHeight: 1,
-                cursor: favoriteMutation.isPending || favoritesLoading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.25s ease',
-                animation: 'fadeInUp 0.6s ease-out 0.75s backwards',
-              }}
-              onMouseEnter={(e) => {
-                if (!favoriteMutation.isPending && !favoritesLoading) {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,0,0,0.22)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.18)';
-              }}
-            >
-              <span aria-hidden="true">{isFavorited ? '♥' : '♡'}</span>
-              <span>{isFavorited ? 'Saved to favorites' : 'Add to favorites'}</span>
-            </button>
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                animation: 'fadeInUp 0.6s ease-out 0.6s backwards',
+              }}>
+                From ${getEventPrice(event).toFixed(0)}
+              </div>
+            )}
+
+            {!isAdmin && (
+              <button
+                type="button"
+                onClick={handleFavoriteToggle}
+                disabled={favoriteMutation.isPending || favoritesLoading}
+                aria-pressed={isFavorited}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.6rem',
+                  padding: '0.5rem 1.5rem',
+                  borderRadius: '30px',
+                  border: isFavorited ? '2px solid #ffffff' : '2px solid rgba(255,255,255,0.55)',
+                  backgroundColor: isFavorited ? '#ffffff' : 'rgba(255,255,255,0.12)',
+                  color: isFavorited ? '#E63946' : '#ffffff',
+                  fontWeight: '700',
+                  fontSize: '1.25rem',
+                  lineHeight: 1,
+                  cursor: favoriteMutation.isPending || favoritesLoading ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.25s ease',
+                  animation: 'fadeInUp 0.6s ease-out 0.75s backwards',
+                }}
+                onMouseEnter={(e) => {
+                  if (!favoriteMutation.isPending && !favoritesLoading) {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,0,0,0.22)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.18)';
+                }}
+              >
+                <span aria-hidden="true">{isFavorited ? '♥' : '♡'}</span>
+                <span>{isFavorited ? 'Saved to favorites' : 'Add to favorites'}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -648,143 +688,192 @@ export default function EventDetail() {
 
           {/* Right Column: Tickets Sidebar (Sticky) */}
           <div style={{ position: 'sticky', top: '1.5rem', alignSelf: 'start', transform: 'translateZ(0)', willChange: 'transform', backfaceVisibility: 'hidden' }}>
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-              border: '2px solid #E63946',
-            }}>
-              <h2 style={{
-                fontFamily: "'Lobster Two', cursive",
-                fontSize: '1.5rem',
-                color: '#1a1a2e',
-                marginBottom: '1.25rem',
-                textAlign: 'center',
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                border: '2px solid #E63946',
+                position: 'relative',
+                overflow: 'hidden',
+                filter: hasPurchased ? 'blur(4px)' : 'none',
+                opacity: hasPurchased ? 0.6 : 1,
+                pointerEvents: hasPurchased || isAdmin ? 'none' : 'auto',
+                transition: 'all 0.3s'
               }}>
-                Select Tickets
-              </h2>
+                <h2 style={{
+                  fontFamily: "'Lobster Two', cursive",
+                  fontSize: '1.5rem',
+                  color: '#1a1a2e',
+                  marginBottom: '1.25rem',
+                  textAlign: 'center',
+                }}>
+                  {isAdmin ? 'Ticket Prices' : 'Select Tickets'}
+                </h2>
 
-              {hasPurchased && (
-                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                  <span style={{ padding: '0.4rem 0.75rem', borderRadius: '999px', backgroundColor: '#eef7f6', color: '#087f5b', fontWeight: '700' }}>Booked</span>
-                  {purchase?.quantity ? <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.4rem' }}>{purchase.quantity} ticket(s) • Booking ID #{purchase.id}</div> : null}
-                  <div style={{ marginTop: '0.6rem' }}>
-                    <button onClick={() => setShowBookingDetailsModal(true)} style={{ padding: '0.45rem 0.75rem', borderRadius: '10px', backgroundColor: '#fff', color: '#1a1a2e', border: '1px solid #e6e6e6', fontWeight: '700', cursor: 'pointer' }}>View booking</button>
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {ticketTiers.map((tier, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => { if (purchaseLoading || hasPurchased || isAdmin) return; setSelectedTicket(idx); }}
+                      style={{
+                        padding: '1rem',
+                        borderRadius: '10px',
+                        border: selectedTicket === idx ? '2px solid #E63946' : '2px solid #e0e0e0',
+                        backgroundColor: selectedTicket === idx ? '#fef2f2' : '#ffffff',
+                        cursor: purchaseLoading || hasPurchased || isAdmin ? 'default' : 'pointer',
+                        transition: 'all 0.3s',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span style={{ 
+                          fontWeight: '700', 
+                          color: selectedTicket === idx ? '#E63946' : '#1a1a2e',
+                          fontSize: '1.1rem',
+                        }}>
+                          {tier.name}
+                        </span>
+                        <span style={{ 
+                          fontWeight: '700', 
+                          color: '#E63946',
+                          fontSize: '1.25rem',
+                        }}>
+                          ${tier.price.toFixed(0)}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.85rem', color: '#666', margin: '0.25rem 0' }}>
+                        {tier.description}
+                      </p>
+                      <p style={{ fontSize: '0.8rem', color: '#999', margin: '0' }}>
+                        {tier.quantity} tickets available
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {ticketTiers.map((tier, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => { if (purchaseLoading || hasPurchased) return; setSelectedTicket(idx); }}
+                {!isAdmin && (
+                  <button
+                    onClick={() => {
+                      if (purchaseLoading) return;
+                      if (hasPurchased) return;
+                      if (selectedTicket === null) return;
+                      if (!isAuthenticated) {
+                        navigate('/login');
+                        return;
+                      }
+                      setShowBookingModal(true);
+                    }}
+                    disabled={selectedTicket === null || hasPurchased || purchaseLoading}
                     style={{
+                      width: '100%',
                       padding: '1rem',
+                      backgroundColor: selectedTicket !== null ? '#E63946' : '#ccc',
+                      color: '#ffffff',
+                      border: 'none',
                       borderRadius: '10px',
-                      border: selectedTicket === idx ? '2px solid #E63946' : '2px solid #e0e0e0',
-                      backgroundColor: selectedTicket === idx ? '#fef2f2' : '#ffffff',
-                      cursor: purchaseLoading || hasPurchased ? 'default' : 'pointer',
-                      opacity: purchaseLoading || hasPurchased ? 0.7 : 1,
-                      transition: 'all 0.3s',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!(purchaseLoading || hasPurchased) && selectedTicket !== idx) {
-                        e.currentTarget.style.borderColor = '#E63946';
-                        e.currentTarget.style.backgroundColor = '#fef2f2';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!(purchaseLoading || hasPurchased) && selectedTicket !== idx) {
-                        e.currentTarget.style.borderColor = '#e0e0e0';
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                      }
+                      fontWeight: '700',
+                      fontSize: '1rem',
+                      cursor: selectedTicket !== null ? 'pointer' : 'not-allowed',
+                      marginTop: '1.25rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                      <span style={{ 
-                        fontWeight: '700', 
-                        color: selectedTicket === idx ? '#E63946' : '#1a1a2e',
-                        fontSize: '1.1rem',
-                      }}>
-                        {tier.name}
-                      </span>
-                      <span style={{ 
-                        fontWeight: '700', 
-                        color: '#E63946',
-                        fontSize: '1.25rem',
-                      }}>
-                        ${tier.price.toFixed(0)}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', margin: '0.25rem 0' }}>
-                      {tier.description}
-                    </p>
-                    <p style={{ fontSize: '0.8rem', color: '#999', margin: '0' }}>
-                      {tier.quantity} tickets available
-                    </p>
-                  </div>
-                ))}
-              </div>
+                    {purchaseLoading ? 'Checking...' : (selectedTicket !== null ? 'Book Now' : 'Select a Ticket')}
+                  </button>
+                )}
 
-              {/* Book Now Button */}
-              <button
-                onClick={() => {
-                  if (purchaseLoading) return;
-                  if (hasPurchased) return;
-                  if (selectedTicket === null) return;
-                  if (!isAuthenticated) {
-                    navigate('/login');
-                    return;
-                  }
-                  setShowBookingModal(true);
-                }}
-                disabled={selectedTicket === null || hasPurchased || purchaseLoading}
-                style={{
-                  width: '100%',
-                  padding: '1rem',
-                  backgroundColor: purchaseLoading ? '#9ca3af' : (hasPurchased ? '#9ca3af' : (selectedTicket !== null ? '#E63946' : '#ccc')),
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontWeight: '700',
-                  fontSize: '1rem',
-                  cursor: purchaseLoading ? 'not-allowed' : (hasPurchased ? 'not-allowed' : (selectedTicket !== null ? 'pointer' : 'not-allowed')),
-                  marginTop: '1.25rem',
-                  transition: 'all 0.3s',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                }}
-                onMouseEnter={(e) => {
-                  if (!purchaseLoading && !hasPurchased && selectedTicket !== null) {
-                    e.target.style.backgroundColor = '#c92a37';
-                    e.target.style.transform = 'translateY(-2px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!purchaseLoading && !hasPurchased && selectedTicket !== null) {
-                    e.target.style.backgroundColor = '#E63946';
-                    e.target.style.transform = 'translateY(0)';
-                  }
-                }}
-              >
-                {purchaseLoading ? 'Checking...' : (hasPurchased ? 'Already booked' : (selectedTicket !== null ? 'Book Now' : 'Select a Ticket'))}
-              </button>
-
-              {selectedTicket !== null && (
-                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#666', marginTop: '0.75rem' }}>
-                  Total: <strong style={{ color: '#E63946' }}>${(ticketTiers[selectedTicket].price).toFixed(0)}</strong>
-                </p>
-              )}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                {selectedTicket !== null && !isAdmin && (
+                  <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#666', marginTop: '0.75rem' }}>
+                    Total: <strong style={{ color: '#E63946' }}>${(ticketTiers[selectedTicket].price).toFixed(0)}</strong>
+                  </p>
+                )}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginTop: '1rem' }}>
                   <span style={{ fontSize: '1.25rem' }}>🎟️</span>
                   <div>
                     <p style={{ fontSize: '0.8rem', color: '#999', margin: '0', fontWeight: '600' }}>AVAILABILITY</p>
                     <p style={{ fontSize: '0.95rem', color: '#22c55e', margin: '0', fontWeight: '500' }}>{getEventAvailableTickets(event)} tickets left</p>
                   </div>
                 </div>
+              </div>
+
+              {hasPurchased && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0, bottom: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 10,
+                  gap: '1rem'
+                }}>
+                  <div style={{
+                    backgroundColor: '#087f5b',
+                    color: '#fff',
+                    padding: '0.75rem 2.5rem',
+                    borderRadius: '30px',
+                    fontWeight: '800',
+                    fontSize: '1.5rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px',
+                    boxShadow: '0 8px 25px rgba(8,127,91,0.4)',
+                    transform: 'rotate(-5deg)'
+                  }}>
+                    BOOKED
+                  </div>
+                  {purchase?.quantity && (
+                    <div style={{
+                      backgroundColor: '#fff',
+                      color: '#1a1a2e',
+                      padding: '0.5rem 1.5rem',
+                      borderRadius: '20px',
+                      fontWeight: '600',
+                      fontSize: '0.95rem',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
+                    }}>
+                      {purchase.quantity} ticket(s) • #{purchase.id}
+                    </div>
+                  )}
+                  <button onClick={() => setShowBookingDetailsModal(true)} style={{ padding: '0.5rem 1.25rem', borderRadius: '12px', backgroundColor: '#fff', color: '#E63946', border: '2px solid #E63946', fontWeight: '700', cursor: 'pointer', marginTop: '0.5rem', boxShadow: '0 4px 10px rgba(230,57,70,0.2)' }}>View Booking</button>
+                </div>
+              )}
             </div>
+
+            {hasPurchased && !isAdmin && (
+              <button 
+                onClick={() => setShowReviewModal(true)}
+                style={{
+                  width: '100%',
+                  marginTop: '1.5rem',
+                  padding: '1rem',
+                  backgroundColor: '#1a1a2e',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '700',
+                  fontSize: '1.05rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(26,26,46,0.2)',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a4a';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1a1a2e';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <span style={{ fontSize: '1.2rem' }}>⭐</span> Add a Review
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -1083,6 +1172,85 @@ export default function EventDetail() {
             <div style={{ textAlign: 'center' }}>
               <button onClick={() => { setShowBookingDetailsModal(false); navigate('/my-tickets'); }} style={{ padding: '0.65rem 1rem', borderRadius: '10px', backgroundColor: '#E63946', color: '#fff', border: 'none', fontWeight: '700', cursor: 'pointer' }}>Go to My Tickets</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1100,
+          padding: '1rem',
+        }} onClick={() => !reviewLoading && setShowReviewModal(false)}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '2rem', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontFamily: "'Lobster Two', cursive", fontSize: '2rem', color: '#1a1a2e', margin: 0 }}>
+                Leave a Review
+              </h2>
+              <button onClick={() => setShowReviewModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>✕</button>
+            </div>
+            
+            {reviewSuccess && (
+              <div style={{ padding: '1rem', backgroundColor: '#d4edda', color: '#155724', borderRadius: '8px', marginBottom: '1rem' }}>
+                {reviewSuccess}
+              </div>
+            )}
+            {reviewError && (
+              <div style={{ padding: '1rem', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '8px', marginBottom: '1rem' }}>
+                {reviewError}
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmitReview}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#333' }}>Rating</label>
+                <select
+                  value={reviewRating}
+                  onChange={(e) => setReviewRating(Number(e.target.value))}
+                  style={{ padding: '0.8rem', borderRadius: '10px', border: '2px solid #e0e0e0', width: '100%', fontSize: '1rem', backgroundColor: '#f8f8f8' }}
+                >
+                  <option value="5">5 - Excellent ⭐⭐⭐⭐⭐</option>
+                  <option value="4">4 - Good ⭐⭐⭐⭐</option>
+                  <option value="3">3 - Average ⭐⭐⭐</option>
+                  <option value="2">2 - Poor ⭐⭐</option>
+                  <option value="1">1 - Terrible ⭐</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#333' }}>Comment</label>
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  rows="4"
+                  placeholder="Share your experience with this event..."
+                  style={{ padding: '0.8rem', borderRadius: '10px', border: '2px solid #e0e0e0', width: '100%', fontSize: '1rem', resize: 'vertical', backgroundColor: '#f8f8f8' }}
+                ></textarea>
+              </div>
+              <button
+                type="submit"
+                disabled={reviewLoading}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  backgroundColor: reviewLoading ? '#ccc' : '#E63946',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  fontSize: '1rem',
+                  cursor: reviewLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s'
+                }}
+              >
+                {reviewLoading ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </form>
           </div>
         </div>
       )}

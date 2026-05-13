@@ -67,6 +67,38 @@ namespace EventHub.API.Controllers
             return Ok(reviews);
         }
 
+        [HttpGet("my-reviews")]
+        [Authorize(Roles = nameof(UserRole.Participant))]
+        public async Task<IActionResult> GetMyReviews()
+        {
+            var userId = EventManagementAuth.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var reviews = await _reviewService.GetByUserAsync(userId);
+            return Ok(reviews);
+        }
+
+        [HttpGet("organizer")]
+        [Authorize(Roles = nameof(UserRole.EventOrganizer))]
+        public async Task<IActionResult> GetOrganizerReviews()
+        {
+            var userId = EventManagementAuth.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var reviews = await _reviewService.GetByOrganizerAsync(userId);
+            return Ok(reviews);
+        }
+
+        [HttpGet("all")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
+        public async Task<IActionResult> GetAllReviews()
+        {
+            var reviews = await _reviewService.GetAllWithDetailsAsync();
+            return Ok(reviews);
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = nameof(UserRole.Participant))]
         public async Task<IActionResult> Delete(string id)

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MjR/crWVdEw=",
+  "dgSpecHash": "IzuiIdofASM=",
   "success": true,
-  "projectFilePath": "D:\\all eventhub\\backend\\EventHub.Domain\\EventHub.Domain.csproj",
+  "projectFilePath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\EventHub.Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ziadb\\.nuget\\packages\\microsoft.entityframeworkcore\\8.0.25\\microsoft.entityframeworkcore.8.0.25.nupkg.sha512",
     "C:\\Users\\ziadb\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\8.0.25\\microsoft.entityframeworkcore.abstractions.8.0.25.nupkg.sha512",

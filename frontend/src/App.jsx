@@ -16,6 +16,7 @@ import MyTickets from './pages/participant/MyTickets';
 import Dashboard from './pages/participant/Dashboard';
 import Profile from './pages/participant/Profile';
 import EditProfile from './pages/participant/EditProfile';
+import MyReviews from './pages/participant/MyReviews';
 
 import CreateEvent from './pages/organizer/CreateEvent';
 import MyEvents from './pages/organizer/MyEvents';
@@ -24,10 +25,12 @@ import OrganizerDashboard from './pages/organizer/Dashboard';
 import OrganizerAnalytics from './pages/organizer/Analytics';
 import OrganizerProfile from './pages/organizer/Profile';
 import EditOrganizerProfile from './pages/organizer/EditProfile';
+import OrganizerReviews from './pages/organizer/OrganizerReviews';
 
 import AdminDashboard from './pages/admin/Dashboard';
 import PendingAccounts from './pages/admin/PendingAccounts';
 import PendingEvents from './pages/admin/PendingEvents';
+import AdminReviews from './pages/admin/AdminReviews';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -65,6 +68,7 @@ function App() {
                   <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} requiredRole="Participant" />} />
                   <Route path="/profile" element={<ProtectedRoute element={<Profile />} requiredRole="Participant" />} />
                   <Route path="/edit-profile" element={<ProtectedRoute element={<EditProfile />} requiredRole="Participant" />} />
+                  <Route path="/my-reviews" element={<ProtectedRoute element={<MyReviews />} requiredRole="Participant" />} />
 
                   {/* Organizer Routes */}
                   <Route path="/organizer-dashboard" element={<ProtectedRoute element={<OrganizerDashboard />} requiredRole="EventOrganizer" />} />
@@ -74,12 +78,14 @@ function App() {
                   <Route path="/edit-event/:id" element={<ProtectedRoute element={<EditEvent />} requiredRole="EventOrganizer" />} />
                   <Route path="/organizer-profile" element={<ProtectedRoute element={<OrganizerProfile />} requiredRole="EventOrganizer" />} />
                   <Route path="/edit-organizer-profile" element={<ProtectedRoute element={<EditOrganizerProfile />} requiredRole="EventOrganizer" />} />
+                  <Route path="/organizer-reviews" element={<ProtectedRoute element={<OrganizerReviews />} requiredRole="EventOrganizer" />} />
 
                   {/* Admin Routes */}
                   <Route path="/admin" element={<ProtectedRoute element={<AdminDashboard />} requiredRole="Admin" />} />
                   <Route path="/admin/dashboard" element={<ProtectedRoute element={<AdminDashboard />} requiredRole="Admin" />} />
                   <Route path="/admin/pending-accounts" element={<ProtectedRoute element={<PendingAccounts />} requiredRole="Admin" />} />
                   <Route path="/admin/pending-events" element={<ProtectedRoute element={<PendingEvents />} requiredRole="Admin" />} />
+                  <Route path="/admin/reviews" element={<ProtectedRoute element={<AdminReviews />} requiredRole="Admin" />} />
                 </Routes>
                 </PendingAccountGate>
             </Router>

@@ -40,6 +40,15 @@ namespace EventHub.BLL.Services.Implementations
         public Task<IEnumerable<Review>> GetByEventAsync(string eventId, CancellationToken cancellationToken = default) =>
             _unitOfWork.Reviews.GetByEventAsync(eventId);
 
+        public Task<IEnumerable<Review>> GetByUserAsync(string userId, CancellationToken cancellationToken = default) =>
+            _unitOfWork.Reviews.GetByUserAsync(userId);
+
+        public Task<IEnumerable<Review>> GetByOrganizerAsync(string organizerId, CancellationToken cancellationToken = default) =>
+            _unitOfWork.Reviews.GetByOrganizerAsync(organizerId);
+
+        public Task<IEnumerable<Review>> GetAllWithDetailsAsync(CancellationToken cancellationToken = default) =>
+            _unitOfWork.Reviews.GetAllWithDetailsAsync();
+
         public async Task DeleteAsync(string id, string userId, CancellationToken cancellationToken = default)
         {
             var review = await _unitOfWork.Reviews.GetByIdAsync(id);

@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
-import { getEventCategory, getEventDate, getEventPrice } from '../utils/eventUtils';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { getEventCategory, getEventDate, getEventPrice, getEventImageUrl } from '../utils/eventUtils';
 
 export default function EventCard({ event, isSoldOut, isBooked = false }) {
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.applyAs === 'Admin';
   const formatDate = (dateString) => {
     if (!dateString) return 'TBD';
     const date = new Date(dateString);
@@ -18,10 +22,12 @@ export default function EventCard({ event, isSoldOut, isBooked = false }) {
         {/* Image Container */}
         <div style={{ position: 'relative', overflow: 'hidden' }}>
           <img
-            src={event.image}
+            src={getEventImageUrl(event)}
             alt={event.title}
             onError={(e) => {
-              e.currentTarget.src = 'https://picsum.photos/seed/eventhub-fallback-card/500/300';
+              if (e.currentTarget.src !== `https://picsum.photos/seed/eventhub-${event?.id || Math.random()}/500/300`) {
+                e.currentTarget.src = `https://picsum.photos/seed/eventhub-${event?.id || Math.random()}/500/300`;
+              }
             }}
             style={{
               width: '100%',
@@ -142,16 +148,18 @@ export default function EventCard({ event, isSoldOut, isBooked = false }) {
                 ${getEventPrice(event).toFixed(0)}
               </span>
             </div>
-            <span style={{
-              color: isBooked ? '#087f5b' : '#E63946',
-              fontSize: '0.85rem',
-              fontWeight: '700',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-            }}>
-              {isBooked ? 'Booked' : 'Details'} <span style={{ transition: 'transform 0.3s' }}>→</span>
-            </span>
+            {!isAdmin && (
+              <span style={{
+                color: isBooked ? '#087f5b' : '#E63946',
+                fontSize: '0.85rem',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}>
+                {isBooked ? 'Booked' : 'Details'} <span style={{ transition: 'transform 0.3s' }}>→</span>
+              </span>
+            )}
           </div>
         </div>
       </div>

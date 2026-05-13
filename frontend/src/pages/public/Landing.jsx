@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import EventCard from '../../components/EventCard';
 import { AuthContext } from '../../context/AuthContext';
-import { getEventCategory, getEventDate, getEventPrice } from '../../utils/eventUtils';
+import { getEventCategory, getEventDate, getEventPrice, getEventImageUrl } from '../../utils/eventUtils';
 import { useEvents } from '../../hooks/useEvents';
 import { useCategories } from '../../hooks/useCategories';
 import { useParticipantTickets } from '../../hooks/useParticipantTickets';
@@ -11,6 +11,7 @@ import { useParticipantTickets } from '../../hooks/useParticipantTickets';
 export default function Landing() {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const { isAuthenticated, user } = useContext(AuthContext);
+  const isAdmin = user?.applyAs === 'Admin';
   const { bookedEventIds } = useParticipantTickets(user?.id, isAuthenticated);
   const { data: liveEvents = [] } = useEvents({});
   const { data: liveCategories = [] } = useCategories();
@@ -48,7 +49,7 @@ export default function Landing() {
   };
 
   const currentEvent = featuredEvents[currentEventIndex] || featuredEvents[0] || {};
-  const currentEventBooked = bookedEventIds.has(Number(currentEvent?.id));
+  const currentEventBooked = bookedEventIds.has(String(currentEvent?.id));
 
   return (
     <div className="landing-page">
@@ -184,10 +185,13 @@ export default function Landing() {
             {/* Image with Sliding Animation */}
             <div style={{ position: 'relative', overflow: 'hidden', minHeight: '300px' }}>
               <img
-                src={currentEvent.image || 'https://picsum.photos/seed/eventhub-fallback-hero/800/500'}
+                src={getEventImageUrl(currentEvent)}
                 alt={currentEvent.title || 'Featured event'}
                 onError={(e) => {
-                  e.currentTarget.src = 'https://picsum.photos/seed/eventhub-fallback-hero/800/500';
+                  const fallbackUrl = `https://picsum.photos/seed/eventhub-${currentEvent?.id || Math.random()}/800/500`;
+                  if (e.currentTarget.src !== fallbackUrl) {
+                    e.currentTarget.src = fallbackUrl;
+                  }
                 }}
                 style={{
                   width: '100%',
@@ -267,21 +271,23 @@ export default function Landing() {
                 {currentEvent.description || 'Experience an amazing event with great atmosphere and unforgettable memories.'}
               </p>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                {currentEventBooked ? (
-                  <span
-                    className="btn btn-primary"
-                    style={{ textDecoration: 'none', backgroundColor: '#eef7f6', color: '#087f5b', borderColor: '#cdebe3', cursor: 'default' }}
-                  >
-                    Booked
-                  </span>
-                ) : (
-                  <Link
-                    to={currentEvent.id ? `/events/${currentEvent.id}` : '/events'}
-                    className="btn btn-primary"
-                    style={{ textDecoration: 'none' }}
-                  >
-                    Book Now
-                  </Link>
+                {!isAdmin && (
+                  currentEventBooked ? (
+                    <span
+                      className="btn btn-primary"
+                      style={{ textDecoration: 'none', backgroundColor: '#eef7f6', color: '#087f5b', borderColor: '#cdebe3', cursor: 'default' }}
+                    >
+                      Booked
+                    </span>
+                  ) : (
+                    <Link
+                      to={currentEvent.id ? `/events/${currentEvent.id}` : '/events'}
+                      className="btn btn-primary"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      Book Now
+                    </Link>
+                  )
                 )}
                 <Link
                   to={currentEvent.id ? `/events/${currentEvent.id}` : '/events'}
@@ -392,7 +398,7 @@ export default function Landing() {
                 key={event.id}
                 event={event}
                 isSoldOut={event.availableTickets === 0}
-                isBooked={bookedEventIds.has(Number(event.id))}
+                isBooked={bookedEventIds.has(String(event.id))}
               />
             ))}
           </div>
@@ -416,7 +422,7 @@ export default function Landing() {
                 key={event.id}
                 event={event}
                 isSoldOut={event.availableTickets === 0}
-                isBooked={bookedEventIds.has(Number(event.id))}
+                isBooked={bookedEventIds.has(String(event.id))}
               />
             ))}
           </div>

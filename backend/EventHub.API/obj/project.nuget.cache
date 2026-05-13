@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "IrR+u/WD8Wk=",
+  "dgSpecHash": "5Zeq2rOqPDM=",
   "success": true,
-  "projectFilePath": "D:\\all eventhub\\backend\\EventHub.API\\EventHub.API.csproj",
+  "projectFilePath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.API\\EventHub.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ziadb\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ziadb\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

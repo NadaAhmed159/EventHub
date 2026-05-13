@@ -86,3 +86,21 @@ D:\all eventhub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.dll
 D:\all eventhub\backend\EventHub.BLL\obj\Debug\net8.0\refint\EventHub.BLL.dll
 D:\all eventhub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.pdb
 D:\all eventhub\backend\EventHub.BLL\obj\Debug\net8.0\ref\EventHub.BLL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\bin\Debug\net8.0\EventHub.BLL.deps.json
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\bin\Debug\net8.0\EventHub.BLL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\bin\Debug\net8.0\EventHub.BLL.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\bin\Debug\net8.0\EventHub.DAL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\bin\Debug\net8.0\EventHub.Domain.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\bin\Debug\net8.0\EventHub.DAL.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\bin\Debug\net8.0\EventHub.Domain.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.csproj.AssemblyReference.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.GeneratedMSBuildEditorConfig.editorconfig
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.AssemblyInfoInputs.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.AssemblyInfo.cs
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.csproj.CoreCompileInputs.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.sourcelink.json
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.EAC07751.Up2Date
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\refint\EventHub.BLL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\EventHub.BLL.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.BLL\obj\Debug\net8.0\ref\EventHub.BLL.dll

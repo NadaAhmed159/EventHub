@@ -212,6 +212,21 @@ export const reviewService = {
       .get(`/api/review/event/${eventId}`)
       .then((res) => ({ data: res.data })),
 
+  getMyReviews: () =>
+    api
+      .get('/api/review/my-reviews')
+      .then((res) => ({ data: res.data })),
+
+  getOrganizerReviews: () =>
+    api
+      .get('/api/review/organizer')
+      .then((res) => ({ data: res.data })),
+
+  getAllReviews: () =>
+    api
+      .get('/api/review/all')
+      .then((res) => ({ data: res.data })),
+
   deleteReview: (reviewId) =>
     api
       .delete(`/api/review/${reviewId}`)

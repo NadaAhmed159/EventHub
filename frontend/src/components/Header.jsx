@@ -138,6 +138,7 @@ export default function Header() {
               <li><Link to="/dashboard">Dashboard</Link></li>
               <li><Link to="/my-tickets">My Tickets</Link></li>
               <li><Link to="/favorites">Favorites</Link></li>
+              <li><Link to="/my-reviews">My Reviews</Link></li>
             </>
           )}
 
@@ -148,6 +149,7 @@ export default function Header() {
               <li><Link to="/organizer-analytics">Analytics</Link></li>
               <li><Link to="/my-events">My Events</Link></li>
               <li><Link to="/create-event">Create Event</Link></li>
+              <li><Link to="/organizer-reviews">Reviews</Link></li>
               <li><Link to="/organizer-profile">Profile</Link></li>
             </>
           )}
@@ -158,6 +160,7 @@ export default function Header() {
               <li><Link to="/admin">Admin Dashboard</Link></li>
               <li><Link to="/admin/pending-accounts">Pending Accounts</Link></li>
               <li><Link to="/admin/pending-events">Pending Events</Link></li>
+              <li><Link to="/admin/reviews">Platform Reviews</Link></li>
             </>
           )}
 
@@ -418,6 +421,18 @@ export default function Header() {
               >
                 Favorites
               </Link>
+              <Link
+                to="/my-reviews"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  color: '#333',
+                  textDecoration: 'none',
+                  padding: '0.5rem 0',
+                  fontWeight: '500',
+                }}
+              >
+                My Reviews
+              </Link>
             </>
           )}
 
@@ -473,6 +488,18 @@ export default function Header() {
                 Create Event
               </Link>
               <Link
+                to="/organizer-reviews"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  color: '#333',
+                  textDecoration: 'none',
+                  padding: '0.5rem 0',
+                  fontWeight: '500',
+                }}
+              >
+                Reviews
+              </Link>
+              <Link
                 to="/organizer-profile"
                 onClick={() => setMobileMenuOpen(false)}
                 style={{
@@ -525,6 +552,18 @@ export default function Header() {
                 }}
               >
                 Pending Events
+              </Link>
+              <Link
+                to="/admin/reviews"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  color: '#333',
+                  textDecoration: 'none',
+                  padding: '0.5rem 0',
+                  fontWeight: '500',
+                }}
+              >
+                Platform Reviews
               </Link>
             </>
           )}

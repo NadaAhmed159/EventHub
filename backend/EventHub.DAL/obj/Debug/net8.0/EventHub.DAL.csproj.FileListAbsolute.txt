@@ -112,3 +112,21 @@ D:\all eventhub\backend\EventHub.DAL\obj\Debug\net8.0\refint\EventHub.DAL.dll
 D:\all eventhub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.pdb
 D:\all eventhub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.genruntimeconfig.cache
 D:\all eventhub\backend\EventHub.DAL\obj\Debug\net8.0\ref\EventHub.DAL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\bin\Debug\net8.0\EventHub.DAL.deps.json
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\bin\Debug\net8.0\EventHub.DAL.runtimeconfig.json
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\bin\Debug\net8.0\EventHub.DAL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\bin\Debug\net8.0\EventHub.DAL.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\bin\Debug\net8.0\EventHub.Domain.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\bin\Debug\net8.0\EventHub.Domain.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.csproj.AssemblyReference.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.GeneratedMSBuildEditorConfig.editorconfig
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.AssemblyInfoInputs.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.AssemblyInfo.cs
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.csproj.CoreCompileInputs.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.sourcelink.json
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.940FCA10.Up2Date
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\refint\EventHub.DAL.dll
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.pdb
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\EventHub.DAL.genruntimeconfig.cache
+D:\AllEventHub\All-EventHub\backend\EventHub.DAL\obj\Debug\net8.0\ref\EventHub.DAL.dll

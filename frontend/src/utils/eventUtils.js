@@ -26,3 +26,27 @@ export function getEventAvailableTickets(event) {
 export function getEventTotalTickets(event) {
   return Number(event?.totalTickets ?? event?.availableTickets ?? 0);
 }
+
+export function getEventImageUrl(event) {
+  const imageSource = event?.image || event?.attachments?.[0]?.filePath || event?.attachments?.[0]?.FilePath;
+
+  if (!imageSource) {
+    return `https://picsum.photos/seed/eventhub-${event?.id || Math.random()}/500/300`;
+  }
+
+  if (
+    imageSource.startsWith('http://') ||
+    imageSource.startsWith('https://') ||
+    imageSource.startsWith('data:image/')
+  ) {
+    return imageSource;
+  }
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5178';
+
+  if (imageSource.startsWith('/')) {
+    return `${baseUrl}${imageSource}`;
+  }
+
+  return `${baseUrl}/${imageSource}`;
+}

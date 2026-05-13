@@ -378,6 +378,27 @@ export const reviewService = {
     };
   },
 
+  async getMyReviews() {
+    await delay(300);
+    return {
+      data: mockReviews,
+    };
+  },
+
+  async getOrganizerReviews() {
+    await delay(300);
+    return {
+      data: mockReviews,
+    };
+  },
+
+  async getAllReviews() {
+    await delay(300);
+    return {
+      data: mockReviews,
+    };
+  },
+
   async deleteReview(reviewId) {
     await delay(300);
     const index = mockReviews.findIndex((r) => r.id === parseInt(reviewId));

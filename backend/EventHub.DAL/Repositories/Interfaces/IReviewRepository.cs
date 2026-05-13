@@ -8,5 +8,8 @@ namespace EventHub.DAL.Repositories.Interfaces
         Task<Review?> GetByParticipantAndEventAsync(string participantId, string eventId);
         Task<double> GetAverageRatingAsync(string eventId);
         Task<bool> HasParticipantReviewedAsync(string participantId, string eventId);
+        Task<IEnumerable<Review>> GetByUserAsync(string userId);
+        Task<IEnumerable<Review>> GetByOrganizerAsync(string organizerId);
+        Task<IEnumerable<Review>> GetAllWithDetailsAsync();
     }
 }

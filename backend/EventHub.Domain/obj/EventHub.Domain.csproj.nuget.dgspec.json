@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\all eventhub\\backend\\EventHub.Domain\\EventHub.Domain.csproj": {}
+    "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\EventHub.Domain.csproj": {}
   },
   "projects": {
-    "D:\\all eventhub\\backend\\EventHub.Domain\\EventHub.Domain.csproj": {
+    "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\EventHub.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\all eventhub\\backend\\EventHub.Domain\\EventHub.Domain.csproj",
+        "projectUniqueName": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\EventHub.Domain.csproj",
         "projectName": "EventHub.Domain",
-        "projectPath": "D:\\all eventhub\\backend\\EventHub.Domain\\EventHub.Domain.csproj",
+        "projectPath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\EventHub.Domain.csproj",
         "packagesPath": "C:\\Users\\ziadb\\.nuget\\packages\\",
-        "outputPath": "D:\\all eventhub\\backend\\EventHub.Domain\\obj\\",
+        "outputPath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

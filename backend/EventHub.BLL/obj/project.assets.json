@@ -2795,11 +2795,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\all eventhub\\backend\\EventHub.BLL\\EventHub.BLL.csproj",
+      "projectUniqueName": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.BLL\\EventHub.BLL.csproj",
       "projectName": "EventHub.BLL",
-      "projectPath": "D:\\all eventhub\\backend\\EventHub.BLL\\EventHub.BLL.csproj",
+      "projectPath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.BLL\\EventHub.BLL.csproj",
       "packagesPath": "C:\\Users\\ziadb\\.nuget\\packages\\",
-      "outputPath": "D:\\all eventhub\\backend\\EventHub.BLL\\obj\\",
+      "outputPath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.BLL\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2820,11 +2820,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\all eventhub\\backend\\EventHub.DAL\\EventHub.DAL.csproj": {
-              "projectPath": "D:\\all eventhub\\backend\\EventHub.DAL\\EventHub.DAL.csproj"
+            "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.DAL\\EventHub.DAL.csproj": {
+              "projectPath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.DAL\\EventHub.DAL.csproj"
             },
-            "D:\\all eventhub\\backend\\EventHub.Domain\\EventHub.Domain.csproj": {
-              "projectPath": "D:\\all eventhub\\backend\\EventHub.Domain\\EventHub.Domain.csproj"
+            "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\EventHub.Domain.csproj": {
+              "projectPath": "D:\\AllEventHub\\All-EventHub\\backend\\EventHub.Domain\\EventHub.Domain.csproj"
             }
           }
         }

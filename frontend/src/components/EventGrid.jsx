@@ -42,7 +42,7 @@ export default function EventGrid({ events, isLoading, isEmpty, bookedEventIds =
             key={event.id}
             event={event}
             isSoldOut={event.availableTickets === 0}
-            isBooked={bookedEventIds.has(Number(event.id))}
+            isBooked={bookedEventIds.has(String(event.id))}
           />
         ))}
       </div>
