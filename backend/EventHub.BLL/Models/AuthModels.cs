@@ -33,7 +33,8 @@ namespace EventHub.BLL.Models
         public UserRole ApplyAs { get; set; }
         public AccountStatus Status { get; set; }
         public string? PhoneNumber { get; set; }
-        public string? ProfileImageUrl { get; set; }
+        public string? Avatar { get; set; }
+        public string Username { get; set; } = string.Empty;
     }
 
     public class AuthResult

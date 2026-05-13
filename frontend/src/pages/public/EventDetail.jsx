@@ -8,6 +8,7 @@ import { eventService } from '../../services/eventService';
 import { favoriteService } from '../../services/favoriteService';
 import { ticketService } from '../../services/ticketService';
 import { reviewService } from '../../services/reviewService';
+import { useParticipantTickets } from '../../hooks/useParticipantTickets';
 import { getEventAvailableTickets, getEventCategory, getEventDate, getEventImageUrl, getEventPrice, getEventTotalTickets } from '../../utils/eventUtils';
 
 export default function EventDetail() {
@@ -24,6 +25,7 @@ export default function EventDetail() {
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [bookedPurchase, setBookedPurchase] = useState(null);
 
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
@@ -40,15 +42,14 @@ export default function EventDetail() {
     enabled: isAuthenticated && !!user?.id,
   });
 
-  const { data: purchaseCheck = { hasPurchased: false, purchase: null }, isLoading: purchaseLoading } = useQuery({
-    queryKey: ['event-purchase', user?.id, id],
-    queryFn: () => ticketService.checkEventPurchase(user.id, id),
-    select: (response) => response.data || { hasPurchased: false, purchase: null },
-    enabled: isAuthenticated && !!user?.id,
-  });
-
-  const hasPurchased = Boolean(purchaseCheck?.hasPurchased);
-  const purchase = purchaseCheck?.purchase || null;
+  const {
+    tickets: participantTickets = [],
+    isLoading: ticketsLoading,
+    refetch: refetchParticipantTickets,
+  } = useParticipantTickets(user?.id, isAuthenticated);
+  const purchase = bookedPurchase || participantTickets.find((ticket) => String(ticket.eventId) === String(id)) || null;
+  const hasPurchased = Boolean(purchase);
+  const purchaseLoading = ticketsLoading;
 
   const { data: event, isLoading: eventLoading, error: eventError } = useQuery({
     queryKey: ['event', id],
@@ -56,7 +57,7 @@ export default function EventDetail() {
     select: (response) => response.data,
   });
 
-  const currentFavorite = favoriteRecords.find((favorite) => Number(favorite.eventId) === Number(id));
+  const currentFavorite = favoriteRecords.find((favorite) => String(favorite.eventId) === String(id));
   const isFavorited = Boolean(currentFavorite);
 
   const favoriteMutation = useMutation({
@@ -66,7 +67,7 @@ export default function EventDetail() {
         return 'removed';
       }
 
-      await favoriteService.addFavorite(Number(id));
+      await favoriteService.addFavorite(id);
       return 'added';
     },
     onSuccess: async () => {
@@ -74,9 +75,28 @@ export default function EventDetail() {
     },
   });
 
+  const handleFavoriteToggle = () => {
+    if (favoriteMutation.isPending || favoritesLoading) return;
+    favoriteMutation.mutate();
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Ensure participant tickets are fresh when auth/user changes,
+  // and clear any optimistic bookedPurchase when the user changes or logs out.
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      // Invalidate then refetch to ensure we don't use stale cache
+      queryClient.invalidateQueries({ queryKey: ['participant-tickets', user.id] });
+      refetchParticipantTickets?.();
+    } else {
+      setBookedPurchase(null);
+    }
+  }, [isAuthenticated, user?.id]);
+
+  
 
   const handleBookTicket = async () => {
     if (!isAuthenticated) {
@@ -96,13 +116,20 @@ export default function EventDetail() {
     setBookingSuccess('');
 
     try {
-      await ticketService.bookTicket(id, user.id, ticketCount);
+      const bookingResponse = await ticketService.bookTicket(id, user.id, ticketCount);
+      const createdPurchase = bookingResponse?.data || null;
+      if (createdPurchase) {
+        setBookedPurchase({
+          ...createdPurchase,
+          eventId: String(createdPurchase.eventId ?? id),
+          participantId: createdPurchase.participantId ?? user.id,
+        });
+      }
       setBookingSuccess('Ticket booked successfully! Check your email for the digital ticket.');
       setShowBookingModal(false);
       setTicketCount(1);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['participant-tickets', user.id] }),
-        queryClient.invalidateQueries({ queryKey: ['event-purchase', user.id, id] }),
         queryClient.invalidateQueries({ queryKey: ['event', id] }),
         queryClient.invalidateQueries({ queryKey: ['events'] }),
       ]);
@@ -115,36 +142,37 @@ export default function EventDetail() {
     }
   };
 
-  const handleFavoriteToggle = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
+  const handleSubmitReview = async (event) => {
+    event.preventDefault();
+
+    if (!hasPurchased || isAdmin) {
+      setReviewError('You can only review an event after booking it.');
       return;
     }
 
-    favoriteMutation.mutate();
-  };
-
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
     setReviewLoading(true);
     setReviewError('');
     setReviewSuccess('');
 
     try {
       await reviewService.submitReview({
-        eventId: id,
+        eventId: String(id),
         rating: reviewRating,
-        comment: reviewComment,
+        comment: reviewComment.trim(),
       });
-      setReviewSuccess('Review submitted successfully!');
+
+      setReviewSuccess('Your review was submitted successfully.');
       setReviewComment('');
-      setTimeout(() => {
-        setShowReviewModal(false);
-        setReviewSuccess('');
-      }, 1500);
-      queryClient.invalidateQueries({ queryKey: ['event-reviews', id] });
+      setReviewRating(5);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['event', id] }),
+        queryClient.invalidateQueries({ queryKey: ['event-reviews', id] }),
+        queryClient.invalidateQueries({ queryKey: ['my-reviews'] }),
+      ]);
+
+      if (showToast) showToast('success', 'Review submitted successfully!');
     } catch (err) {
-      setReviewError(err.response?.data?.message || err.response?.data || 'Failed to submit review.');
+      setReviewError(err.response?.data?.message || 'Failed to submit review. Please try again.');
     } finally {
       setReviewLoading(false);
     }
@@ -536,6 +564,10 @@ export default function EventDetail() {
               transform: scale(1.15);
             }
           }
+          @keyframes fadeInScale {
+            from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
         `}</style>
       </section>
 
@@ -690,18 +722,18 @@ export default function EventDetail() {
           <div style={{ position: 'sticky', top: '1.5rem', alignSelf: 'start', transform: 'translateZ(0)', willChange: 'transform', backfaceVisibility: 'hidden' }}>
             <div style={{ position: 'relative' }}>
               <div style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                border: '2px solid #E63946',
-                position: 'relative',
-                overflow: 'hidden',
-                filter: hasPurchased ? 'blur(4px)' : 'none',
-                opacity: hasPurchased ? 0.6 : 1,
-                pointerEvents: hasPurchased || isAdmin ? 'none' : 'auto',
-                transition: 'all 0.3s'
-              }}>
+                  backgroundColor: '#ffffff',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  border: '2px solid #E63946',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  filter: hasPurchased ? 'blur(4px)' : 'none',
+                  opacity: hasPurchased ? 0.6 : 1,
+                  pointerEvents: hasPurchased || isAdmin ? 'none' : 'auto',
+                  transition: 'filter 0.35s ease, opacity 0.35s ease'
+                }}>
                 <h2 style={{
                   fontFamily: "'Lobster Two', cursive",
                   fontSize: '1.5rem',
@@ -754,17 +786,17 @@ export default function EventDetail() {
 
                 {!isAdmin && (
                   <button
-                    onClick={() => {
-                      if (purchaseLoading) return;
-                      if (hasPurchased) return;
-                      if (selectedTicket === null) return;
-                      if (!isAuthenticated) {
-                        navigate('/login');
-                        return;
-                      }
-                      setShowBookingModal(true);
-                    }}
-                    disabled={selectedTicket === null || hasPurchased || purchaseLoading}
+                      onClick={() => {
+                          if (purchaseLoading) return;
+                          if (hasPurchased) return;
+                          if (selectedTicket === null) return;
+                          if (!isAuthenticated) {
+                            navigate('/login');
+                            return;
+                          }
+                          setShowBookingModal(true);
+                        }}
+                        disabled={selectedTicket === null || hasPurchased || purchaseLoading}
                     style={{
                       width: '100%',
                       padding: '1rem',
@@ -807,7 +839,8 @@ export default function EventDetail() {
                   justifyContent: 'center',
                   alignItems: 'center',
                   zIndex: 10,
-                  gap: '1rem'
+                  gap: '1rem',
+                  animation: 'fadeInScale 0.35s ease'
                 }}>
                   <div style={{
                     backgroundColor: '#087f5b',

@@ -71,9 +71,16 @@ namespace EventHub.API.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        [Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize]
         public async Task<IActionResult> GetByUser(string userId)
         {
+            var currentUserId = EventManagementAuth.GetUserId(User);
+            var isAdmin = EventManagementAuth.IsAdmin(User);
+
+            // Users can only view their own favorites unless they are admin
+            if (currentUserId != userId && !isAdmin)
+                return Forbid();
+
             var items = await _favoriteService.GetByUserAsync(userId);
             return Ok(items);
         }

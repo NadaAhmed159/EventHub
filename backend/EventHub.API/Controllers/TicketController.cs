@@ -110,7 +110,7 @@ namespace EventHub.API.Controllers
         [HttpGet("participant/{participantId}")]
         public async Task<IActionResult> GetTicketsByParticipant(string participantId)
         {
-            var tickets = await _ticketService.GetTicketsByParticipantAsync(participantId);
+            var tickets = await _ticketService.GetBookedTicketsByParticipantAsync(participantId);
             return Ok(tickets);
         }
 

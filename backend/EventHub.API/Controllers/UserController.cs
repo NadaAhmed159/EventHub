@@ -1,3 +1,4 @@
+using EventHub.BLL.Models;
 using EventHub.BLL.Services.Interfaces;
 using EventHub.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,22 @@ namespace EventHub.API.Controllers
             _userService = userService;
         }
 
+        private UserDto MapUserToDto(User user)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ApplyAs = user.ApplyAs,
+                Status = user.Status,
+                PhoneNumber = user.PhoneNumber,
+                Avatar = user.ProfileImageUrl,
+                Username = user.Email.Split('@')[0]
+            };
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
         {
@@ -25,7 +42,7 @@ namespace EventHub.API.Controllers
             {
                 return NotFound();
             }
-            return Ok(user);
+            return Ok(MapUserToDto(user));
         }
 
         [HttpGet("email/{email}")]
@@ -36,7 +53,7 @@ namespace EventHub.API.Controllers
             {
                 return NotFound();
             }
-            return Ok(user);
+            return Ok(MapUserToDto(user));
         }
 
         [HttpGet("email-exists/{email}")]
@@ -47,17 +64,38 @@ namespace EventHub.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(string id, [FromBody] User user)
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
-            if (id != user.Id)
+            if (string.IsNullOrWhiteSpace(id))
             {
-                return BadRequest("User ID mismatch");
+                return BadRequest("User ID is required.");
             }
 
             try
             {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.FirstName))
+                    user.FirstName = request.FirstName.Trim();
+                
+                if (!string.IsNullOrWhiteSpace(request.LastName))
+                    user.LastName = request.LastName.Trim();
+                
+                if (!string.IsNullOrWhiteSpace(request.Email))
+                    user.Email = request.Email.Trim().ToLowerInvariant();
+                
+                if (!string.IsNullOrWhiteSpace(request.Avatar))
+                    user.ProfileImageUrl = request.Avatar;
+                
+                if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+                    user.PhoneNumber = request.PhoneNumber.Trim();
+
                 await _userService.UpdateUserAsync(user);
-                return NoContent();
+                return Ok(MapUserToDto(user));
             }
             catch (KeyNotFoundException)
             {

@@ -69,10 +69,10 @@ export default function EditOrganizerProfile() {
         avatar: avatarPreview !== currentAvatarUrl ? avatarPreview : user?.avatar,
       };
 
-      await userService.updateUser(user.id, updatedUser);
+      const response = await userService.updateUser(user.id, updatedUser);
+      const updatedUserData = response.data || response;
 
-      const newUser = { ...user, ...updatedUser };
-      login(newUser, localStorage.getItem('token'), localStorage.getItem('expiresAtUtc'));
+      login(updatedUserData, localStorage.getItem('token'), localStorage.getItem('expiresAtUtc'));
 
       setSuccess('Profile updated successfully!');
       setTimeout(() => {

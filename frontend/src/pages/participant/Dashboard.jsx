@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   const bookedEvents = tickets
     .map((ticket) => {
-      const matchingEvent = approvedEvents.find((event) => Number(event.id) === Number(ticket.eventId));
+      const matchingEvent = approvedEvents.find((event) => String(event.id) === String(ticket.eventId));
 
       return {
         ...ticket,

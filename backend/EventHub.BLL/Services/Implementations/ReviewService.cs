@@ -22,8 +22,8 @@ namespace EventHub.BLL.Services.Implementations
             if (eventEntity == null)
                 throw new KeyNotFoundException("Event not found.");
 
-            if (eventEntity.EventDate > DateTime.UtcNow)
-                throw new ArgumentException("You can only review events after the event date has passed.");
+            // Allow participants to submit reviews after booking regardless of event date.
+            // Previous behavior prevented reviews before the event date; remove that restriction.
 
             var hasPurchased = await _unitOfWork.Tickets.HasParticipantPurchasedAsync(review.UserId, review.EventId);
             if (!hasPurchased)

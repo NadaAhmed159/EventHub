@@ -8,7 +8,7 @@ import { eventService } from '../../services/eventService';
 import { favoriteService } from '../../services/favoriteService';
 
 function normalizeFavoriteEvent(favorite, approvedEvents) {
-  const fallbackEvent = approvedEvents.find((event) => Number(event.id) === Number(favorite.eventId ?? favorite.id));
+  const fallbackEvent = approvedEvents.find((event) => String(event.id) === String(favorite.eventId ?? favorite.id));
   const source = fallbackEvent || favorite;
 
   return {

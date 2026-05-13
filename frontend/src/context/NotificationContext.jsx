@@ -72,7 +72,7 @@ export function NotificationProvider({ children }) {
       return undefined;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5178';
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
     const socket = io(socketUrl, {
       autoConnect: false,
       transports: ['websocket', 'polling'],

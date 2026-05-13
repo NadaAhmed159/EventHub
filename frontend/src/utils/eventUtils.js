@@ -42,7 +42,7 @@ export function getEventImageUrl(event) {
     return imageSource;
   }
 
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5178';
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   if (imageSource.startsWith('/')) {
     return `${baseUrl}${imageSource}`;

@@ -141,6 +141,42 @@ namespace EventHub.BLL.Services.Implementations
             return await _unitOfWork.Tickets.GetByParticipantAsync(participantId);
         }
 
+        public async Task<IEnumerable<BookedTicketDto>> GetBookedTicketsByParticipantAsync(string participantId)
+        {
+            var orders = await _unitOfWork.Orders.GetByParticipantAsync(participantId);
+            var dtos = new List<BookedTicketDto>();
+
+            foreach (var order in orders)
+            {
+                var ticketCount = order.Tickets?.Count ?? 1;
+                foreach (var ticket in order.Tickets ?? new List<Ticket>())
+                {
+                    dtos.Add(new BookedTicketDto
+                    {
+                        Id = ticket.Id,
+                        EventId = ticket.EventId,
+                        ParticipantId = ticket.ParticipantId,
+                        OrderId = ticket.OrderId ?? string.Empty,
+                        QrCode = ticket.QrCode,
+                        PurchasedAt = ticket.PurchasedAt,
+                        UsedAtUtc = ticket.UsedAtUtc,
+                        Title = order.Event?.Title ?? string.Empty,
+                        Description = order.Event?.Description,
+                        EventDate = order.Event?.EventDate ?? DateTime.MinValue,
+                        Venue = order.Event?.Venue ?? string.Empty,
+                        Image = order.Event?.Image,
+                        CategoryName = order.Event?.Category?.Name ?? "General",
+                        OrganizerName = $"{order.Event?.Organizer?.FirstName ?? ""} {order.Event?.Organizer?.LastName ?? ""}".Trim(),
+                        TotalPrice = order.TotalPrice,
+                        Quantity = ticketCount,
+                        Status = ticket.UsedAtUtc.HasValue ? "Used" : "Confirmed"
+                    });
+                }
+            }
+
+            return dtos;
+        }
+
         public async Task<bool> HasParticipantPurchasedAsync(string participantId, string eventId)
         {
             return await _unitOfWork.Tickets.HasParticipantPurchasedAsync(participantId, eventId);
