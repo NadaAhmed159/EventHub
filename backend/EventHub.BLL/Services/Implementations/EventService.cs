@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EventHub.BLL.Services.Interfaces;
 using EventHub.DAL.Repositories.Interfaces;
@@ -115,6 +116,13 @@ namespace EventHub.BLL.Services.Implementations
         {
             _unitOfWork.Events.Update(updatedEvent);
             await _unitOfWork.SaveChangesAsync();
+
+            if (updatedEvent.Status == EventStatus.Approved)
+            {
+                var organizerName = string.Join(" ", new[] { updatedEvent.Organizer?.FirstName, updatedEvent.Organizer?.LastName }
+                    .Where(part => !string.IsNullOrWhiteSpace(part)));
+                await _notificationService.NotifyApprovedParticipantsEventUpdatedAsync(updatedEvent.Id, updatedEvent.Title, organizerName, default);
+            }
         }
 
         public Task<EventAnalytics?> GetEventAnalyticsForOrganizerAsync(string organizerUserId, string eventId) =>

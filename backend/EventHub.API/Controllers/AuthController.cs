@@ -51,7 +51,7 @@ namespace EventHub.API.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized(new { message = ex.Message });
             }
         }
 

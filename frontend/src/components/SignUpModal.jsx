@@ -44,24 +44,10 @@ export default function SignUpModal({ onClose, initialData }) {
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     username: '',
-    avatar: null,
     agreedToLicense: false,
     firstName: '',
     lastName: '',
   });
-  const [profilePreview, setProfilePreview] = useState(null);
-
-  const handleProfilePictureChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, avatar: reader.result });
-        setProfilePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleNext = () => {
     // validations per step
@@ -81,11 +67,6 @@ export default function SignUpModal({ onClose, initialData }) {
       setError('Please enter a username');
       return;
     }
-    if (step === 5 && !formData.avatar) {
-      setError('Please choose a profile picture');
-      return;
-    }
-
     setError('');
     setStep(step + 1);
   };
@@ -123,7 +104,6 @@ export default function SignUpModal({ onClose, initialData }) {
       const userWithUsername = {
         ...user,
         username: formData.username,
-        avatar: formData.avatar,
         firstName,
         lastName,
       };
@@ -143,7 +123,7 @@ export default function SignUpModal({ onClose, initialData }) {
     <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000}} onClick={onClose}>
       <div style={{backgroundColor: '#fff', borderRadius: '12px', padding: '3rem', maxWidth: '500px', width: '90%', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'}} onClick={(e) => e.stopPropagation()}>
         <div style={{display: 'flex', gap: '0.5rem', marginBottom: '2rem', justifyContent: 'center'}}>
-          {[1, 2, 3, 4, 5, 6].map(n => <div key={n} style={{width: '10px', height: '10px', borderRadius: '50%', backgroundColor: n <= step ? '#E63946' : '#e0e0e0'}} />)}
+          {[1, 2, 3, 4, 5].map(n => <div key={n} style={{width: '10px', height: '10px', borderRadius: '50%', backgroundColor: n <= step ? '#E63946' : '#e0e0e0'}} />)}
         </div>
 
         {/* Error Message */}
@@ -195,23 +175,7 @@ export default function SignUpModal({ onClose, initialData }) {
             <input type="text" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="Enter username" style={{width: '100%', padding: '0.75rem', border: '2px solid #e0e0e0', borderRadius: '8px', boxSizing: 'border-box'}} />
           </div>
         )}
-
         {step === 5 && (
-          <div>
-            <h2 style={{fontFamily: "'Lobster', cursive", fontSize: '1.75rem', color: '#1a1a2e', marginBottom: '1.5rem'}}>Profile Picture</h2>
-            <div style={{textAlign: 'center', marginBottom: '1.5rem'}}>
-              <div style={{width: '150px', height: '150px', borderRadius: '50%', border: '3px dashed #E63946', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', backgroundColor: '#f5f3f0', overflow: 'hidden', fontSize: '3rem'}}>
-                {profilePreview ? <img src={profilePreview} alt="p" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : '📸'}
-              </div>
-              <label style={{display: 'inline-block', padding: '0.75rem 1.5rem', backgroundColor: '#E63946', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600'}}>
-                Choose File
-                <input type="file" accept="image/*" onChange={handleProfilePictureChange} style={{display: 'none'}} />
-              </label>
-            </div>
-          </div>
-        )}
-
-        {step === 6 && (
           <div style={{textAlign: 'center'}}>
             <h2 style={{fontFamily: "'Lobster', cursive", fontSize: '1.75rem', color: '#1a1a2e', marginBottom: '1.5rem'}}>Welcome!</h2>
             <p>Your account <strong style={{color: '#E63946'}}>{formData.username}</strong> is ready!</p>
@@ -228,7 +192,7 @@ export default function SignUpModal({ onClose, initialData }) {
               Back
             </button>
           )}
-          {step < 6 && (
+          {step < 5 && (
             <button
               onClick={handleNext}
               disabled={loading}
@@ -237,7 +201,7 @@ export default function SignUpModal({ onClose, initialData }) {
               Next
             </button>
           )}
-          {step === 6 && (
+          {step === 5 && (
             <button
               onClick={handleComplete}
               disabled={loading}

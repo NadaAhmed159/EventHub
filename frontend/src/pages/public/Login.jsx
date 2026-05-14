@@ -6,6 +6,20 @@ import { AuthContext } from '../../context/AuthContext';
 import { authService } from '../../services/serviceFactory';
 import { isPendingOrganizer } from '../../utils/accountStatus';
 
+function getLoginErrorMessage(err) {
+  const payload = err?.response?.data;
+
+  if (err?.response?.status === 401) {
+    if (typeof payload === 'string' && payload.trim()) return payload;
+    if (typeof payload?.message === 'string' && payload.message.trim()) return payload.message;
+    return 'Invalid email or password.';
+  }
+
+  if (typeof payload === 'string' && payload.trim()) return payload;
+  if (typeof payload?.message === 'string' && payload.message.trim()) return payload.message;
+  return err.message || 'Login failed. Please try again.';
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +39,7 @@ export default function Login() {
       login(user, token, expiresAtUtc);
       navigate(isPendingOrganizer(user) ? '/account-pending' : '/');
     } catch (err) {
-      setError(err.response?.data?.message || err.data?.message || err.message || 'Login failed. Please try again.');
+      setError(getLoginErrorMessage(err));
       console.error('Login error:', err);
     } finally {
       setLoading(false);

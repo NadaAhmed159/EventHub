@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '../../components/Header';
 import { AuthContext } from '../../context/AuthContext';
 import { eventService } from '../../services/eventService';
+import { attachmentService } from '../../services/attachmentService';
 import { useCategories } from '../../hooks/useCategories';
-import { getEventDate, getEventPrice, getEventTotalTickets } from '../../utils/eventUtils';
+import { getEventAvailableTickets, getEventDate, getEventPrice, getEventTotalTickets } from '../../utils/eventUtils';
 
 function splitDateTime(value) {
 	if (!value) return { eventDate: '', eventTime: '' };
@@ -38,6 +39,8 @@ export default function EditEvent() {
 		image: '',
 	});
 	const [imagePreview, setImagePreview] = useState(null);
+	const [attachmentFile, setAttachmentFile] = useState(null);
+	const [attachmentsToDelete, setAttachmentsToDelete] = useState([]);
 
 	const { data: event, isLoading } = useQuery({
 		queryKey: ['event', id],
@@ -120,16 +123,21 @@ export default function EditEvent() {
 			title: formData.title,
 			description: formData.description,
 			venue: formData.venue,
-			categoryId: Number(formData.categoryId),
+			categoryId: String(formData.categoryId),
 			eventDate: `${formData.eventDate}T${formData.eventTime}:00`,
-			ticketPrice: Number(formData.ticketPrice),
+			price: Number(formData.ticketPrice),
 			totalTickets: Number(formData.totalTickets),
+			availableTickets: getEventAvailableTickets(event),
 			image: formData.image,
 			organizerId: user.id,
 		};
 
 		try {
 			await updateMutation.mutateAsync({ eventId: id, payload });
+			await Promise.all(attachmentsToDelete.map((attachmentId) => attachmentService.deleteAttachment(attachmentId)));
+			if (attachmentFile) {
+				await attachmentService.uploadAttachment(id, attachmentFile);
+			}
 			navigate('/my-events');
 		} catch (err) {
 			setError(err.response?.data?.message || 'Failed to update event.');
@@ -261,6 +269,35 @@ export default function EditEvent() {
 									<img src={imagePreview} alt="Preview" style={{ maxWidth: '220px', maxHeight: '200px', borderRadius: '8px', border: '2px solid #E63946' }} />
 								</div>
 							)}
+						</div>
+
+						<div>
+							<label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#1a1a2e', marginBottom: '0.5rem' }}>Attachments</label>
+							{Array.isArray(event.attachments) && event.attachments.length > 0 && (
+								<div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
+									{event.attachments.map((attachment) => {
+										const isMarked = attachmentsToDelete.includes(attachment.id);
+										const filePath = attachment.filePath || attachment.FilePath || '';
+										const fileName = filePath.split(/[\\/]/).pop() || 'Attachment';
+										return (
+											<label key={attachment.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isMarked ? '#999' : '#1a1a2e', textDecoration: isMarked ? 'line-through' : 'none' }}>
+												<input
+													type="checkbox"
+													checked={isMarked}
+													onChange={(e) => {
+														setAttachmentsToDelete((prev) => e.target.checked
+															? [...prev, attachment.id]
+															: prev.filter((id) => id !== attachment.id));
+													}}
+												/>
+												Remove {fileName}
+											</label>
+										);
+									})}
+								</div>
+							)}
+							<input type="file" onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)} style={{ ...inputStyle, padding: '0.5rem' }} />
+							{attachmentFile && <p style={{ marginTop: '0.5rem', color: '#087f5b', fontSize: '0.85rem' }}>Selected: {attachmentFile.name}</p>}
 						</div>
 
 						<div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>

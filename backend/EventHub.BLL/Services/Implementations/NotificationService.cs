@@ -126,15 +126,40 @@ namespace EventHub.BLL.Services.Implementations
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task NotifyApprovedParticipantsNewEventCreatedAsync(string eventId, string eventTitle, CancellationToken cancellationToken = default)
+        public async Task NotifyApprovedParticipantsNewEventCreatedAsync(string eventId, string eventTitle, string organizerName, CancellationToken cancellationToken = default)
         {
             var participantIds = await _unitOfWork.Users.GetApprovedUserIdsByRoleAsync(UserRole.Participant);
             if (participantIds.Count == 0)
                 return;
 
-            const string title = "New event created";
+            const string title = "New event available";
             var safeTitle = string.IsNullOrWhiteSpace(eventTitle) ? "Untitled event" : eventTitle.Trim();
-            var message = $"An event organizer submitted a new event: {safeTitle}. It is pending approval.";
+            var safeOrganizer = string.IsNullOrWhiteSpace(organizerName) ? "An organizer" : organizerName.Trim();
+            var message = $"{safeOrganizer} added a new event: {safeTitle}.";
+
+            var notifications = participantIds.Select(userId => new Notification
+            {
+                UserId = userId,
+                Title = title,
+                Message = message,
+                EventId = eventId,
+                IsRead = false
+            }).ToList();
+
+            await _unitOfWork.Notifications.AddRangeAsync(notifications);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task NotifyApprovedParticipantsEventUpdatedAsync(string eventId, string eventTitle, string organizerName, CancellationToken cancellationToken = default)
+        {
+            var participantIds = await _unitOfWork.Users.GetApprovedUserIdsByRoleAsync(UserRole.Participant);
+            if (participantIds.Count == 0)
+                return;
+
+            const string title = "Event updated";
+            var safeTitle = string.IsNullOrWhiteSpace(eventTitle) ? "Untitled event" : eventTitle.Trim();
+            var safeOrganizer = string.IsNullOrWhiteSpace(organizerName) ? "An organizer" : organizerName.Trim();
+            var message = $"{safeOrganizer} updated the event: {safeTitle}.";
 
             var notifications = participantIds.Select(userId => new Notification
             {

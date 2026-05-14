@@ -67,10 +67,17 @@ export function useEvents(filters = {}) {
           }
 
           // Search filter (for fields not covered by API)
+          const normalizedSearch = searchTerm.toLowerCase();
           const title = getEventTitle(event).toLowerCase();
           const venue = (event.venue || '').toLowerCase();
-          if (searchTerm && !title.includes(searchTerm.toLowerCase()) &&
-              !venue.includes(searchTerm.toLowerCase())) {
+          const categoryForSearch = getEventCategory(event).toLowerCase();
+          const eventDateText = getEventDate(event).toLowerCase();
+          const eventDateLocale = eventDate.toLocaleDateString('en-US').toLowerCase();
+          if (searchTerm && !title.includes(normalizedSearch) &&
+              !venue.includes(normalizedSearch) &&
+              !categoryForSearch.includes(normalizedSearch) &&
+              !eventDateText.includes(normalizedSearch) &&
+              !eventDateLocale.includes(normalizedSearch)) {
             return false;
           }
 

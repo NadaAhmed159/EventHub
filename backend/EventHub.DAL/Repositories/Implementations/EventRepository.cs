@@ -76,7 +76,8 @@ namespace EventHub.DAL.Repositories.Implementations
                 query = query.Where(e =>
                     e.Title.ToLower().Contains(keyword.ToLower()) ||
                     e.Description.ToLower().Contains(keyword.ToLower()) ||
-                    e.Venue.ToLower().Contains(keyword.ToLower()));
+                    e.Venue.ToLower().Contains(keyword.ToLower()) ||
+                    (e.Category != null && e.Category.Name.ToLower().Contains(keyword.ToLower())));
 
             if (!string.IsNullOrWhiteSpace(venue))
                 query = query.Where(e => e.Venue != null && e.Venue.ToLower().Contains(venue.ToLower()));

@@ -10,10 +10,6 @@ export default function EditOrganizerProfile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const currentAvatarUrl = user?.avatar || `https://i.pravatar.cc/150?u=${user?.email}`;
-  const [avatarPreview, setAvatarPreview] = useState(currentAvatarUrl);
-  const [avatarFile, setAvatarFile] = useState(null);
-
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -34,20 +30,6 @@ export default function EditOrganizerProfile() {
     }));
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setAvatarPreview(event.target.result);
-      };
-      reader.readAsDataURL(file);
-    } else if (file) {
-      setError('Please select a valid image file.');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -66,7 +48,6 @@ export default function EditOrganizerProfile() {
         lastName: formData.lastName.trim(),
         email: formData.email,
         companyName: formData.companyName.trim() || user?.companyName,
-        avatar: avatarPreview !== currentAvatarUrl ? avatarPreview : user?.avatar,
       };
 
       const response = await userService.updateUser(user.id, updatedUser);
@@ -90,19 +71,7 @@ export default function EditOrganizerProfile() {
       <Header />
       <div style={{ maxWidth: '700px', margin: '0 auto', padding: '2rem 1.5rem' }}>
         <div style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <img
-            src={currentAvatarUrl}
-            alt="Current profile"
-            style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              border: '3px solid #E63946',
-              objectFit: 'cover',
-              flexShrink: 0,
-            }}
-          />
-          <div>
+<div>
             <h1 style={{ fontFamily: "'Lobster Two', cursive", fontSize: '2.5rem', color: '#1a1a2e', margin: '0 0 0.5rem 0' }}>
               Edit Organizer Profile
             </h1>
@@ -145,56 +114,6 @@ export default function EditOrganizerProfile() {
           )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                color: '#1a1a2e',
-                marginBottom: '0.75rem',
-              }}>
-                Profile Picture
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '8px',
-                  fontSize: '0.95rem',
-                  fontFamily: 'inherit',
-                  backgroundColor: '#f8f8f8',
-                  color: '#333',
-                  transition: 'all 0.3s ease',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  marginBottom: '1rem',
-                }}
-              />
-              <p style={{ fontSize: '0.85rem', color: '#999', margin: '0.5rem 0 1rem 0' }}>Supported formats: JPG, PNG, GIF, WebP</p>
-              <div style={{ textAlign: 'center' }}>
-                <img
-                  src={avatarPreview}
-                  alt="Profile preview"
-                  style={{
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    border: '3px solid #E63946',
-                    objectFit: 'cover',
-                  }}
-                />
-                {avatarFile && (
-                  <p style={{ fontSize: '0.85rem', color: '#087f5b', margin: '0.75rem 0 0 0', fontWeight: '600' }}>
-                    ✓ New image selected: {avatarFile.name}
-                  </p>
-                )}
-              </div>
-            </div>
-
             <div>
               <label style={{
                 display: 'block',

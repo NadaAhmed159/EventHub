@@ -1,8 +1,9 @@
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import { AuthContext } from '../../context/AuthContext';
 import { eventService } from '../../services/eventService';
+import { attachmentService } from '../../services/attachmentService';
 import { useCategories } from '../../hooks/useCategories';
 
 export default function CreateEvent() {
@@ -25,13 +26,7 @@ export default function CreateEvent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
-
-  const baseTicketPrice = Number(formData.ticketPrice) || 0;
-  const ticketTiers = useMemo(() => ([
-    { label: 'Standard', price: baseTicketPrice },
-    { label: 'VIP', price: baseTicketPrice * 1.5 },
-    { label: 'Premium', price: baseTicketPrice * 2 },
-  ]), [baseTicketPrice]);
+  const [attachmentFile, setAttachmentFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,7 +85,11 @@ export default function CreateEvent() {
         organizerId: user.id,
       };
 
-      await eventService.createEvent(eventPayload);
+      const response = await eventService.createEvent(eventPayload);
+      const createdEvent = response?.data;
+      if (attachmentFile && createdEvent?.id) {
+        await attachmentService.uploadAttachment(createdEvent.id, attachmentFile);
+      }
       navigate('/my-events', {
         state: {
           justCreatedPendingEvent: true,
@@ -320,7 +319,7 @@ export default function CreateEvent() {
                   required
                 />
                 <p style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.85rem' }}>
-                  This base price is used to show Standard, VIP, and Premium ticket options.
+                  This is the ticket price participants will pay.
                 </p>
               </div>
               <div>
@@ -339,23 +338,6 @@ export default function CreateEvent() {
                   onBlur={(e) => Object.assign(e.target.style, blurStyle)}
                   required
                 />
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#f9f7f4', borderRadius: '10px', padding: '1rem 1.1rem', border: '1px solid #eee' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                <strong style={{ color: '#1a1a2e' }}>Ticket tiers preview</strong>
-                <span style={{ color: '#666', fontSize: '0.85rem' }}>Based on the base ticket price above</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
-                {ticketTiers.map((tier) => (
-                  <div key={tier.label} style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '0.85rem', border: '1px solid #eee' }}>
-                    <div style={{ fontWeight: '700', color: '#1a1a2e', marginBottom: '0.2rem' }}>{tier.label}</div>
-                    <div style={{ color: '#E63946', fontSize: '1.05rem', fontWeight: '800' }}>
-                      ${tier.price > 0 ? tier.price.toFixed(2) : '0.00'}
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
 
@@ -387,6 +369,22 @@ export default function CreateEvent() {
                     }}
                   />
                 </div>
+              )}
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#1a1a2e', marginBottom: '0.5rem' }}>
+                Attachment (optional)
+              </label>
+              <input
+                type="file"
+                onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
+                style={{ ...inputStyle, padding: '0.5rem' }}
+              />
+              {attachmentFile && (
+                <p style={{ marginTop: '0.5rem', color: '#087f5b', fontSize: '0.85rem' }}>
+                  Selected: {attachmentFile.name}
+                </p>
               )}
             </div>
 

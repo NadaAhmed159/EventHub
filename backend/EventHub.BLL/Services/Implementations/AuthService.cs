@@ -140,7 +140,6 @@ namespace EventHub.BLL.Services.Implementations
                 ApplyAs = user.ApplyAs,
                 Status = user.Status,
                 PhoneNumber = user.PhoneNumber,
-                Avatar = user.ProfileImageUrl,
                 Username = user.Email.Split('@')[0]
             };
 

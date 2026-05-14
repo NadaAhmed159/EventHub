@@ -18,6 +18,7 @@ export default function ProfileDropdown() {
     'Participant';
 
   const pendingOrganizer = isPendingOrganizer(user);
+  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.trim().toUpperCase() || 'U';
 
   const primaryLink =
     pendingOrganizer
@@ -89,15 +90,7 @@ export default function ProfileDropdown() {
           e.currentTarget.style.transform = 'scale(1)';
         }}
       >
-        {user?.avatar ? (
-          <img
-            src={user.avatar}
-            alt={`${user?.firstName} ${user?.lastName}`}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-          />
-        ) : (
-          <span style={{ fontSize: '1.5rem' }}>👤</span>
-        )}
+        <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#E63946' }}>{initials}</span>
       </button>
 
       {isOpen && (

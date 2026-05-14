@@ -213,7 +213,10 @@ namespace EventHub.BLL.Services.Implementations
                 EventTitle = ticket.Event?.Title ?? string.Empty,
                 EventDate = ticket.Event?.EventDate ?? default,
                 Venue = ticket.Event?.Venue ?? string.Empty,
+                ParticipantId = ticket.ParticipantId,
                 ParticipantFullName = fullName,
+                ParticipantEmail = participant?.Email ?? string.Empty,
+                ParticipantPhoneNumber = participant?.PhoneNumber,
                 PurchasedAt = ticket.PurchasedAt,
                 VerifiedAtUtc = verifiedAt
             };

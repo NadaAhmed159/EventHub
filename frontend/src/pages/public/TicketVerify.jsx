@@ -15,8 +15,8 @@ export default function TicketVerify() {
       try {
         setLoading(true);
         setError(null);
-        const data = await ticketService.verifyTicketByQrCode(qrCode);
-        setVerification(data);
+        const response = await ticketService.verifyTicketByQrCode(qrCode);
+        setVerification(response?.data || response);
       } catch (err) {
         console.error('Verification error:', err);
         let errorMsg = 'Failed to verify ticket. QR code may be invalid or the ticket may have been used.';
@@ -101,7 +101,7 @@ export default function TicketVerify() {
     );
   }
 
-  const { ticketId, eventTitle, eventDate, venue, participantFullName, purchasedAt, verifiedAtUtc } = verification;
+  const { ticketId, eventTitle, eventDate, venue, participantFullName, participantEmail, participantPhoneNumber, purchasedAt, verifiedAtUtc } = verification;
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -141,6 +141,14 @@ export default function TicketVerify() {
             <div className="detail-row">
               <span className="label">Name:</span>
               <span className="value">{participantFullName}</span>
+            </div>
+            <div className="detail-row">
+              <span className="label">Email:</span>
+              <span className="value">{participantEmail || 'Not provided'}</span>
+            </div>
+            <div className="detail-row">
+              <span className="label">Phone:</span>
+              <span className="value">{participantPhoneNumber || 'Not provided'}</span>
             </div>
             <div className="detail-row">
               <span className="label">Ticket ID:</span>

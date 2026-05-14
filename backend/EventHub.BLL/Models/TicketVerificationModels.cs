@@ -15,7 +15,10 @@ namespace EventHub.BLL.Models
         public string EventTitle { get; set; } = string.Empty;
         public DateTime EventDate { get; set; }
         public string Venue { get; set; } = string.Empty;
+        public string ParticipantId { get; set; } = string.Empty;
         public string ParticipantFullName { get; set; } = string.Empty;
+        public string ParticipantEmail { get; set; } = string.Empty;
+        public string? ParticipantPhoneNumber { get; set; }
         public DateTime PurchasedAt { get; set; }
         public DateTime VerifiedAtUtc { get; set; }
     }

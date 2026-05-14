@@ -8,6 +8,7 @@ import { eventService } from '../../services/eventService';
 import { favoriteService } from '../../services/favoriteService';
 import { ticketService } from '../../services/ticketService';
 import { reviewService } from '../../services/reviewService';
+import { API_BASE_URL } from '../../services/api';
 import { useParticipantTickets } from '../../hooks/useParticipantTickets';
 import { getEventAvailableTickets, getEventCategory, getEventDate, getEventImageUrl, getEventPrice, getEventTotalTickets } from '../../utils/eventUtils';
 
@@ -18,9 +19,8 @@ export default function EventDetail() {
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useContext(AuthContext);
   const { showToast } = useContext(NotificationContext);
-  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(0);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [ticketCount, setTicketCount] = useState(1);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
@@ -128,7 +128,7 @@ export default function EventDetail() {
     setBookingSuccess('');
 
     try {
-      const bookingResponse = await ticketService.bookTicket(id, user.id, ticketCount);
+      const bookingResponse = await ticketService.bookTicket(id, user.id, 1);
       const createdPurchase = bookingResponse?.data || null;
       if (createdPurchase) {
         setBookedPurchase({
@@ -139,7 +139,6 @@ export default function EventDetail() {
       }
       setBookingSuccess('Ticket booked successfully! Check your email for the digital ticket.');
       setShowBookingModal(false);
-      setTicketCount(1);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['participant-tickets', user.id] }),
         queryClient.invalidateQueries({ queryKey: ['event', id] }),
@@ -157,8 +156,8 @@ export default function EventDetail() {
   const handleSubmitReview = async (event) => {
     event.preventDefault();
 
-    if (!hasPurchased || isAdmin || isOrganizer) {
-      setReviewError('You can only review an event after booking it.');
+    if (!canReview) {
+      setReviewError('You can review this event after attending it.');
       return;
     }
 
@@ -298,10 +297,22 @@ export default function EventDetail() {
     );
   }
 
+  const totalTickets = getEventTotalTickets(event);
+  const availableTickets = getEventAvailableTickets(event);
+  const isSoldOut = availableTickets <= 0;
+  const hasEventPassed = new Date(getEventDate(event)) < new Date();
+  const canReview = hasPurchased && hasEventPassed && !isAdmin && !isOrganizer;
+  const userReviews = Array.isArray(event.reviews)
+    ? event.reviews.filter((review) => String(review.userId) === String(user?.id))
+    : [];
+  const attachments = Array.isArray(event.attachments) ? event.attachments : [];
+  const buildAttachmentUrl = (path) => {
+    if (!path) return '#';
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${API_BASE_URL}/${String(path).replace(/^\/+/, '')}`;
+  };
   const ticketTiers = [
-    { name: 'Standard', price: getEventPrice(event), quantity: getEventTotalTickets(event), description: 'General admission access' },
-    { name: 'VIP', price: getEventPrice(event) * 1.5, quantity: Math.floor(getEventTotalTickets(event) / 2), description: 'Priority seating & exclusive lounge' },
-    { name: 'Premium', price: getEventPrice(event) * 2, quantity: Math.floor(getEventTotalTickets(event) / 5), description: 'Front row + meet & greet' },
+    { name: 'Ticket', price: getEventPrice(event), quantity: availableTickets, description: 'General admission access' },
   ];
 
   const facilities = [
@@ -620,6 +631,37 @@ export default function EventDetail() {
               </p>
             </div>
 
+            {attachments.length > 0 && (
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '2rem',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                marginBottom: '2rem',
+              }}>
+                <h2 style={{ fontFamily: "'Lobster Two', cursive", fontSize: '1.75rem', color: '#1a1a2e', marginBottom: '1.25rem' }}>
+                  Attachments
+                </h2>
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  {attachments.map((attachment) => {
+                    const filePath = attachment.filePath || attachment.FilePath || '';
+                    const fileName = filePath.split(/[\\/]/).pop() || 'Attachment';
+                    return (
+                      <a
+                        key={attachment.id || filePath}
+                        href={buildAttachmentUrl(filePath)}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: '#E63946', fontWeight: 700, textDecoration: 'none', padding: '0.75rem', border: '1px solid #f0f0f0', borderRadius: '8px', backgroundColor: '#fff7f7' }}
+                      >
+                        {fileName}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Venue Section */}
             <div style={{
               backgroundColor: '#ffffff',
@@ -753,20 +795,20 @@ export default function EventDetail() {
                   marginBottom: '1.25rem',
                   textAlign: 'center',
                 }}>
-                  {isAdmin || isOrganizer ? 'Ticket Prices' : 'Select Tickets'}
+                  {isAdmin || isOrganizer ? 'Ticket Price' : 'Tickets'}
                 </h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {ticketTiers.map((tier, idx) => (
                     <div
                       key={idx}
-                      onClick={() => { if (purchaseLoading || hasPurchased || isAdmin || isOrganizer) return; setSelectedTicket(idx); }}
+                      onClick={() => { if (purchaseLoading || hasPurchased || isSoldOut || isAdmin || isOrganizer) return; setSelectedTicket(idx); }}
                       style={{
                         padding: '1rem',
                         borderRadius: '10px',
                         border: selectedTicket === idx ? '2px solid #E63946' : '2px solid #e0e0e0',
                         backgroundColor: selectedTicket === idx ? '#fef2f2' : '#ffffff',
-                        cursor: purchaseLoading || hasPurchased || isAdmin || isOrganizer ? 'default' : 'pointer',
+                        cursor: purchaseLoading || hasPurchased || isSoldOut || isAdmin || isOrganizer ? 'default' : 'pointer',
                         transition: 'all 0.3s',
                       }}
                     >
@@ -790,7 +832,7 @@ export default function EventDetail() {
                         {tier.description}
                       </p>
                       <p style={{ fontSize: '0.8rem', color: '#999', margin: '0' }}>
-                        {tier.quantity} tickets available
+                         Total tickets: {totalTickets} | Available tickets: {availableTickets}
                       </p>
                     </div>
                   ))}
@@ -800,7 +842,7 @@ export default function EventDetail() {
                   <button
                     onClick={() => {
                       if (purchaseLoading) return;
-                      if (hasPurchased) return;
+                      if (hasPurchased || isSoldOut) return;
                       if (selectedTicket === null) return;
                       if (!isAuthenticated) {
                         navigate('/login');
@@ -808,23 +850,23 @@ export default function EventDetail() {
                       }
                       setShowBookingModal(true);
                     }}
-                    disabled={selectedTicket === null || hasPurchased || purchaseLoading}
+                    disabled={selectedTicket === null || hasPurchased || isSoldOut || purchaseLoading}
                     style={{
                       width: '100%',
                       padding: '1rem',
-                      backgroundColor: selectedTicket !== null ? '#E63946' : '#ccc',
+                      backgroundColor: selectedTicket !== null && !isSoldOut ? '#E63946' : '#ccc',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '10px',
                       fontWeight: '700',
                       fontSize: '1rem',
-                      cursor: selectedTicket !== null ? 'pointer' : 'not-allowed',
+                      cursor: selectedTicket !== null && !isSoldOut ? 'pointer' : 'not-allowed',
                       marginTop: '1.25rem',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                     }}
                   >
-                    {purchaseLoading ? 'Checking...' : (selectedTicket !== null ? 'Book Now' : 'Select a Ticket')}
+                    {purchaseLoading ? 'Checking...' : isSoldOut ? 'Tickets Sold Out' : 'Book Now'}
                   </button>
                 )}
 
@@ -837,7 +879,12 @@ export default function EventDetail() {
                   <span style={{ fontSize: '1.25rem' }}>🎟️</span>
                   <div>
                     <p style={{ fontSize: '0.8rem', color: '#999', margin: '0', fontWeight: '600' }}>AVAILABILITY</p>
-                    <p style={{ fontSize: '0.95rem', color: '#22c55e', margin: '0', fontWeight: '500' }}>{getEventAvailableTickets(event)} tickets left</p>
+                    <p style={{ fontSize: '0.95rem', color: isSoldOut ? '#b42318' : '#22c55e', margin: '0', fontWeight: '500' }}>
+                      Total: {totalTickets} | Available: {availableTickets}
+                    </p>
+                    {isSoldOut && (
+                      <p style={{ fontSize: '0.9rem', color: '#b42318', margin: '0.25rem 0 0', fontWeight: 700 }}>Tickets sold out</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -886,7 +933,7 @@ export default function EventDetail() {
               )}
             </div>
 
-            {hasPurchased && !isAdmin && !isOrganizer && (
+            {canReview && (
               <button
                 onClick={() => setShowReviewModal(true)}
                 style={{
@@ -918,6 +965,18 @@ export default function EventDetail() {
               >
                 <span style={{ fontSize: '1.2rem' }}>⭐</span> Add a Review
               </button>
+            )}
+
+            {hasPurchased && userReviews.length > 0 && (
+              <div style={{ marginTop: '1.5rem', backgroundColor: '#ffffff', borderRadius: '12px', padding: '1rem', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                <h3 style={{ margin: '0 0 0.75rem', color: '#1a1a2e', fontSize: '1rem' }}>Your review</h3>
+                {userReviews.map((review) => (
+                  <div key={review.id} style={{ borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
+                    <div style={{ color: '#E63946', fontWeight: 800 }}>{review.rating}/5</div>
+                    {review.comment && <p style={{ color: '#4b5563', margin: '0.35rem 0 0', lineHeight: 1.5 }}>{review.comment}</p>}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -1013,97 +1072,9 @@ export default function EventDetail() {
               </p>
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#333' }}>
-                Number of Tickets
-              </label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <button
-                  onClick={() => setTicketCount(Math.max(1, ticketCount - 1))}
-                  disabled={bookingLoading}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '8px',
-                    border: '2px solid #e0e0e0',
-                    backgroundColor: bookingLoading ? '#f0f0f0' : '#ffffff',
-                    fontSize: '1.25rem',
-                    cursor: bookingLoading ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s',
-                    opacity: bookingLoading ? 0.6 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!bookingLoading) {
-                      e.target.style.borderColor = '#E63946';
-                      e.target.style.color = '#E63946';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!bookingLoading) {
-                      e.target.style.borderColor = '#e0e0e0';
-                      e.target.style.color = '#333';
-                    }
-                  }}
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={ticketCount}
-                  onChange={(e) => setTicketCount(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
-                  disabled={bookingLoading}
-                  style={{
-                    width: '80px',
-                    padding: '0.75rem',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '8px',
-                    fontSize: '1.1rem',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    color: '#1a1a2e',
-                    opacity: bookingLoading ? 0.6 : 1,
-                  }}
-                />
-                <button
-                  onClick={() => setTicketCount(Math.min(10, ticketCount + 1))}
-                  disabled={bookingLoading}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '8px',
-                    border: '2px solid #e0e0e0',
-                    backgroundColor: bookingLoading ? '#f0f0f0' : '#ffffff',
-                    fontSize: '1.25rem',
-                    cursor: bookingLoading ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s',
-                    opacity: bookingLoading ? 0.6 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!bookingLoading) {
-                      e.target.style.borderColor = '#E63946';
-                      e.target.style.color = '#E63946';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!bookingLoading) {
-                      e.target.style.borderColor = '#e0e0e0';
-                      e.target.style.color = '#333';
-                    }
-                  }}
-                >
-                  +
-                </button>
-              </div>
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f8f8f8', borderRadius: '10px', color: '#4b5563', fontSize: '0.95rem' }}>
+              Each participant can book one ticket for this event.
             </div>
-
             {/* Total */}
             <div style={{
               display: 'flex',
@@ -1116,7 +1087,7 @@ export default function EventDetail() {
             }}>
               <span style={{ fontWeight: '600', color: '#666' }}>Total Amount</span>
               <span style={{ fontWeight: '700', color: '#E63946', fontSize: '1.5rem' }}>
-                ${(parseFloat(ticketTiers[selectedTicket].price) * ticketCount).toFixed(2)}
+                ${parseFloat(ticketTiers[selectedTicket].price).toFixed(2)}
               </span>
             </div>
 

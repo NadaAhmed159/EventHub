@@ -63,6 +63,9 @@ namespace EventHub.BLL.Services.Implementations
 
             await _eventService.ApproveEventAsync(eventId);
             await _notificationService.NotifyOrganizerEventDecisionAsync(@event.OrganizerId, @event.Id, @event.Title, approved: true, cancellationToken);
+            var organizerName = string.Join(" ", new[] { @event.Organizer?.FirstName, @event.Organizer?.LastName }
+                .Where(part => !string.IsNullOrWhiteSpace(part)));
+            await _notificationService.NotifyApprovedParticipantsNewEventCreatedAsync(@event.Id, @event.Title, organizerName, cancellationToken);
         }
 
         public async Task RejectEventAsync(string eventId, CancellationToken cancellationToken = default)

@@ -21,6 +21,7 @@ export default function OrganizerProfile() {
   }
 
   const fullName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.trim().toUpperCase() || 'U';
 
   return (
     <div style={{ backgroundColor: '#f5f3f0', minHeight: '100vh' }}>
@@ -61,7 +62,7 @@ export default function OrganizerProfile() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', alignItems: 'start' }}>
-          {/* Avatar Section */}
+          {/* Profile Summary */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -69,18 +70,7 @@ export default function OrganizerProfile() {
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
             textAlign: 'center',
           }}>
-            <img
-              src={user?.avatar || `https://i.pravatar.cc/150?u=${user?.email}`}
-              alt={fullName}
-              style={{
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                marginBottom: '1rem',
-                border: '4px solid #E63946',
-                objectFit: 'cover',
-              }}
-            />
+            <div style={{ width: '120px', height: '120px', borderRadius: '50%', margin: '0 auto 1rem', border: '4px solid #E63946', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E63946', fontSize: '2rem', fontWeight: 800 }}>{initials}</div>
             <h2 style={{ fontSize: '1.5rem', color: '#1a1a2e', margin: '0 0 0.5rem 0', fontWeight: '600' }}>
               {fullName}
             </h2>

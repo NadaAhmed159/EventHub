@@ -29,7 +29,6 @@ namespace EventHub.API.Controllers
                 ApplyAs = user.ApplyAs,
                 Status = user.Status,
                 PhoneNumber = user.PhoneNumber,
-                Avatar = user.ProfileImageUrl,
                 Username = user.Email.Split('@')[0]
             };
         }
@@ -87,9 +86,6 @@ namespace EventHub.API.Controllers
                 
                 if (!string.IsNullOrWhiteSpace(request.Email))
                     user.Email = request.Email.Trim().ToLowerInvariant();
-                
-                if (!string.IsNullOrWhiteSpace(request.Avatar))
-                    user.ProfileImageUrl = request.Avatar;
                 
                 if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
                     user.PhoneNumber = request.PhoneNumber.Trim();

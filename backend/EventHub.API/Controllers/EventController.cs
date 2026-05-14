@@ -146,6 +146,9 @@ namespace EventHub.API.Controllers
             else
                 organizerId = userId;
 
+            if (dto.TotalTickets < 1)
+                return BadRequest("Total tickets must be at least 1.");
+
             var newEvent = new Event
             {
                 OrganizerId = organizerId,
@@ -157,7 +160,7 @@ namespace EventHub.API.Controllers
                 Image = dto.Image,
                 Price = dto.Price,
                 TotalTickets = dto.TotalTickets,
-                AvailableTickets = dto.AvailableTickets
+                AvailableTickets = dto.TotalTickets
             };
 
             try
@@ -191,6 +194,13 @@ namespace EventHub.API.Controllers
             if (!EventManagementAuth.CanMutateEvent(User, existing.OrganizerId))
                 return Forbid();
 
+            var previousTotalTickets = existing.TotalTickets;
+            var previousAvailableTickets = existing.AvailableTickets;
+            var soldTickets = Math.Max(0, previousTotalTickets - previousAvailableTickets);
+
+            if (dto.TotalTickets < soldTickets)
+                return BadRequest($"Total tickets cannot be lower than the {soldTickets} tickets already sold.");
+
             existing.CategoryId = dto.CategoryId;
             existing.Title = dto.Title;
             existing.Description = dto.Description;
@@ -199,7 +209,7 @@ namespace EventHub.API.Controllers
             existing.Image = dto.Image;
             existing.Price = dto.Price;
             existing.TotalTickets = dto.TotalTickets;
-            existing.AvailableTickets = dto.AvailableTickets;
+            existing.AvailableTickets = Math.Max(0, dto.TotalTickets - soldTickets);
 
             try
             {
