@@ -17,6 +17,7 @@ namespace EventHub.DAL.Repositories.Interfaces
             string? venue,
             string? categoryId,
             DateTime? eventDate);
+        Task<bool> TryDecrementAvailableTicketsAsync(string eventId);
         Task<IEnumerable<Event>> GetEventsByCategoryAsync(string categoryId);
         Task<int> GetSoldTicketsCountAsync(string eventId);
         Task<int> GetAvailableTicketsCountAsync(string eventId);

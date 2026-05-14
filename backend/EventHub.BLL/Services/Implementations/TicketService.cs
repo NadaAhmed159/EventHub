@@ -55,7 +55,9 @@ namespace EventHub.BLL.Services.Implementations
                     if (eventObj.AvailableTickets < 1)
                         throw new InvalidOperationException("No tickets are available for this event.");
 
-                    eventObj.AvailableTickets -= 1;
+                    var reserved = await _unitOfWork.Events.TryDecrementAvailableTicketsAsync(eventId);
+                    if (!reserved)
+                        throw new InvalidOperationException("No tickets are available for this event.");
 
                     var order = new Order
                     {
@@ -88,7 +90,7 @@ namespace EventHub.BLL.Services.Implementations
                         EventId = eventObj.Id,
                         ParticipantId = participantId,
                         TotalPrice = order.TotalPrice,
-                        RemainingAvailableTickets = eventObj.AvailableTickets,
+                        RemainingAvailableTickets = await _unitOfWork.Events.GetAvailableTicketsCountAsync(eventId),
                         TicketId = ticket.Id,
                         TicketQrCode = ticket.QrCode,
                         TicketQrCodeImagePath = ticket.QrCodeImagePath ?? string.Empty

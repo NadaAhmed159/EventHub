@@ -91,6 +91,16 @@ namespace EventHub.DAL.Repositories.Implementations
             return await query.OrderBy(e => e.EventDate).ToListAsync();
         }
 
+        public async Task<bool> TryDecrementAvailableTicketsAsync(string eventId)
+        {
+            var affectedRows = await _dbSet
+                .Where(e => e.Id == eventId && e.Status == EventStatus.Approved && e.AvailableTickets > 0)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(e => e.AvailableTickets, e => e.AvailableTickets - 1));
+
+            return affectedRows > 0;
+        }
+
         public async Task<IEnumerable<Event>> GetEventsByCategoryAsync(string categoryId) =>
             await _dbSet
                 .Where(e => e.CategoryId == categoryId && e.Status == EventStatus.Approved)

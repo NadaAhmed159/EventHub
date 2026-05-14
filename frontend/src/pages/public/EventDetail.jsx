@@ -147,7 +147,10 @@ export default function EventDetail() {
       // show toast instead of redirecting
       if (showToast) showToast('success', 'Ticket booked successfully!');
     } catch (err) {
-      setBookingError(err.response?.data?.message || 'Failed to book ticket. Please try again.');
+      const backendMessage = typeof err.response?.data === 'string'
+        ? err.response.data
+        : err.response?.data?.message;
+      setBookingError(backendMessage || 'Failed to book ticket. Please try again.');
     } finally {
       setBookingLoading(false);
     }
