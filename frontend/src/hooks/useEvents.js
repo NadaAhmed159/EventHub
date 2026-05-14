@@ -2,6 +2,47 @@ import { useQuery } from '@tanstack/react-query';
 import { eventService } from '../services/eventService';
 import { getEventCategory, getEventDate, getEventPrice, getEventTitle } from '../utils/eventUtils';
 
+function buildEventDateSearchText(eventDateValue) {
+  if (!eventDateValue) return '';
+
+  const eventDate = new Date(eventDateValue);
+  if (Number.isNaN(eventDate.getTime())) {
+    return String(eventDateValue).toLowerCase();
+  }
+
+  const dateVariants = [
+    eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+    eventDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    eventDate.toLocaleDateString('en-US', { month: 'long' }),
+    eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    eventDate.toLocaleDateString('en-US'),
+  ];
+
+  return dateVariants.join(' ').toLowerCase();
+}
+
+function matchesSearchTerm(event, searchTerm) {
+  if (!searchTerm) return true;
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  if (!normalizedSearch) return true;
+
+  const title = getEventTitle(event).toLowerCase();
+  const venue = (event.venue || '').toLowerCase();
+  const category = getEventCategory(event).toLowerCase();
+  const rawDate = (getEventDate(event) || '').toLowerCase();
+  const dateText = buildEventDateSearchText(getEventDate(event));
+
+  return (
+    title.includes(normalizedSearch) ||
+    venue.includes(normalizedSearch) ||
+    category.includes(normalizedSearch) ||
+    rawDate.includes(normalizedSearch) ||
+    dateText.includes(normalizedSearch)
+  );
+}
+
 /**
  * useEvents Hook - Fetches events with filtering and search
  * Falls back to mock data if API call fails for development purposes
@@ -18,9 +59,11 @@ export function useEvents(filters = {}) {
     queryKey: ['events', filters],
     queryFn: async () => {
       try {
+        const hasSearchTerm = Boolean(searchTerm?.trim());
+
         // Call API with search filters
         const searchParams = {
-          keyword: searchTerm || undefined,
+          keyword: hasSearchTerm ? searchTerm.trim() : undefined,
           eventDate: dateRange.start || undefined,
           minPrice: priceRange.min > 0 ? priceRange.min : undefined,
           maxPrice: priceRange.max < 500 ? priceRange.max : undefined,
@@ -31,9 +74,10 @@ export function useEvents(filters = {}) {
           Object.entries(searchParams).filter(([, v]) => v !== undefined)
         );
 
-        // If we have search filters, use search endpoint, otherwise get approved events
+        // Avoid the keyword search endpoint for free-text searches so month names and partial dates
+        // can match against the full approved event list client-side.
         let response;
-        if (Object.keys(cleanParams).length > 0) {
+        if (!hasSearchTerm && Object.keys(cleanParams).length > 0) {
           response = await eventService.searchEvents(cleanParams);
         } else {
           response = await eventService.getApprovedEvents();
@@ -67,17 +111,7 @@ export function useEvents(filters = {}) {
           }
 
           // Search filter (for fields not covered by API)
-          const normalizedSearch = searchTerm.toLowerCase();
-          const title = getEventTitle(event).toLowerCase();
-          const venue = (event.venue || '').toLowerCase();
-          const categoryForSearch = getEventCategory(event).toLowerCase();
-          const eventDateText = getEventDate(event).toLowerCase();
-          const eventDateLocale = eventDate.toLocaleDateString('en-US').toLowerCase();
-          if (searchTerm && !title.includes(normalizedSearch) &&
-              !venue.includes(normalizedSearch) &&
-              !categoryForSearch.includes(normalizedSearch) &&
-              !eventDateText.includes(normalizedSearch) &&
-              !eventDateLocale.includes(normalizedSearch)) {
+          if (!matchesSearchTerm(event, searchTerm)) {
             return false;
           }
 
