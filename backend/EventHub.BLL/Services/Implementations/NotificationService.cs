@@ -8,10 +8,24 @@ namespace EventHub.BLL.Services.Implementations
     public class NotificationService : INotificationService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly INotificationRealtimePublisher _notificationPublisher;
 
-        public NotificationService(IUnitOfWork unitOfWork)
+        public NotificationService(IUnitOfWork unitOfWork, INotificationRealtimePublisher notificationPublisher)
         {
             _unitOfWork = unitOfWork;
+            _notificationPublisher = notificationPublisher;
+        }
+
+        private async Task BroadcastNotificationsAsync(IEnumerable<Notification> notifications, CancellationToken cancellationToken = default)
+        {
+            var notificationList = notifications
+                .Where(notification => notification != null)
+                .ToList();
+
+            if (notificationList.Count == 0)
+                return;
+
+            await _notificationPublisher.PublishCreatedAsync(notificationList, cancellationToken);
         }
 
         public Task<IEnumerable<Notification>> GetByUserAsync(string userId, CancellationToken cancellationToken = default) =>
@@ -21,6 +35,7 @@ namespace EventHub.BLL.Services.Implementations
         {
             await _unitOfWork.Notifications.AddAsync(notification);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(new[] { notification }, cancellationToken);
             return notification;
         }
 
@@ -47,6 +62,7 @@ namespace EventHub.BLL.Services.Implementations
 
             await _unitOfWork.Notifications.AddRangeAsync(notifications);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(notifications, cancellationToken);
         }
 
         public async Task NotifyAdminsOfPendingEventSubmissionAsync(Event pendingEvent, CancellationToken cancellationToken = default)
@@ -70,6 +86,7 @@ namespace EventHub.BLL.Services.Implementations
 
             await _unitOfWork.Notifications.AddRangeAsync(notifications);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(notifications, cancellationToken);
         }
 
         public async Task NotifyOrganizerApprovalDecisionAsync(string organizerUserId, bool approved, CancellationToken cancellationToken = default)
@@ -89,6 +106,7 @@ namespace EventHub.BLL.Services.Implementations
 
             await _unitOfWork.Notifications.AddAsync(notification);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(new[] { notification }, cancellationToken);
         }
 
         public async Task NotifyOrganizerEventDecisionAsync(string organizerUserId, string eventId, string eventTitle, bool approved, CancellationToken cancellationToken = default)
@@ -110,6 +128,7 @@ namespace EventHub.BLL.Services.Implementations
 
             await _unitOfWork.Notifications.AddAsync(notification);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(new[] { notification }, cancellationToken);
         }
 
         public async Task MarkAsReadAsync(string id, string participantUserId, CancellationToken cancellationToken = default)
@@ -124,6 +143,8 @@ namespace EventHub.BLL.Services.Implementations
             notification.IsRead = true;
             _unitOfWork.Notifications.Update(notification);
             await _unitOfWork.SaveChangesAsync();
+
+            await _notificationPublisher.PublishReadAsync(participantUserId, notification.Id, cancellationToken);
         }
 
         public async Task NotifyApprovedParticipantsNewEventCreatedAsync(string eventId, string eventTitle, string organizerName, CancellationToken cancellationToken = default)
@@ -148,6 +169,7 @@ namespace EventHub.BLL.Services.Implementations
 
             await _unitOfWork.Notifications.AddRangeAsync(notifications);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(notifications, cancellationToken);
         }
 
         public async Task NotifyApprovedParticipantsEventUpdatedAsync(string eventId, string eventTitle, string organizerName, CancellationToken cancellationToken = default)
@@ -172,6 +194,7 @@ namespace EventHub.BLL.Services.Implementations
 
             await _unitOfWork.Notifications.AddRangeAsync(notifications);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(notifications, cancellationToken);
         }
 
         public async Task NotifyTicketHoldersOfNewEventAttachmentAsync(string eventId, string uploadedFileDisplayName, CancellationToken cancellationToken = default)
@@ -203,6 +226,7 @@ namespace EventHub.BLL.Services.Implementations
 
             await _unitOfWork.Notifications.AddRangeAsync(notifications);
             await _unitOfWork.SaveChangesAsync();
+            await BroadcastNotificationsAsync(notifications, cancellationToken);
         }
     }
 }

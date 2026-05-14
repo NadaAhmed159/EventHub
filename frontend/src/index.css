@@ -127,6 +127,47 @@ h1, h2, h3, h4, h5, h6 {
   will-change: transform, opacity;
 }
 
+.notification-bell {
+  will-change: transform, box-shadow;
+}
+
+.notification-bell--pulse {
+  animation: bellBounce 900ms cubic-bezier(.34,1.56,.64,1);
+}
+
+.notification-bell span {
+  animation: badgePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes bellBounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  20% {
+    transform: scale(1.12) rotate(-8deg);
+  }
+  40% {
+    transform: scale(1.06) rotate(8deg);
+  }
+  60% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.45);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 6px rgba(230, 57, 70, 0);
+  }
+}
+
 .app-toast--error {
   /* allow inline styles to remain authoritative; this class exists for future tweaks */
 }

@@ -2,6 +2,12 @@ using EventHub.Domain.Entities;
 
 namespace EventHub.BLL.Services.Interfaces
 {
+    public interface INotificationRealtimePublisher
+    {
+        Task PublishCreatedAsync(IEnumerable<Notification> notifications, CancellationToken cancellationToken = default);
+        Task PublishReadAsync(string userId, string notificationId, CancellationToken cancellationToken = default);
+    }
+
     public interface INotificationService
     {
         Task<IEnumerable<Notification>> GetByUserAsync(string userId, CancellationToken cancellationToken = default);

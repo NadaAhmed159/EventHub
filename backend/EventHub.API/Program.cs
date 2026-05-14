@@ -3,6 +3,7 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using EventHub.BLL;
 using EventHub.BLL.Configuration;
+using EventHub.BLL.Services.Interfaces;
 using EventHub.DAL;
 using EventHub.DAL.Data;
 using EventHub.API.Hubs;
@@ -96,6 +97,7 @@ builder.Services.AddAuthorization(options =>
 // Add dependency injection packages
 builder.Services.AddDAL(builder.Configuration);
 builder.Services.AddBLL(builder.Configuration);
+builder.Services.AddScoped<INotificationRealtimePublisher, SignalRNotificationPublisher>();
 
 var app = builder.Build();
 
@@ -135,5 +137,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<EventAvailabilityHub>("/hubs/event-availability");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
+import { HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { notificationService } from '../services/notificationService';
 import { AuthContext } from './AuthContext';
 
@@ -23,7 +23,7 @@ export function NotificationProvider({ children }) {
   const { user, isAuthenticated } = useContext(AuthContext);
   const [toasts, setToasts] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const socketRef = useRef(null);
+  const connectionRef = useRef(null);
   const pollRef = useRef(null);
   const EXIT_ANIM_MS = 320;
 
@@ -58,9 +58,9 @@ export function NotificationProvider({ children }) {
 
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
       }
 
       if (pollRef.current) {
@@ -72,14 +72,17 @@ export function NotificationProvider({ children }) {
       return undefined;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-    const socket = io(socketUrl, {
-      autoConnect: false,
-      transports: ['websocket', 'polling'],
-      withCredentials: true,
-    });
+    const apiBaseUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+    const hubUrl = `${apiBaseUrl.replace(/\/$/, '')}/hubs/notifications`;
+    const connection = new HubConnectionBuilder()
+      .withUrl(hubUrl, {
+        accessTokenFactory: () => localStorage.getItem('token') || '',
+      })
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Information)
+      .build();
 
-    socketRef.current = socket;
+    connectionRef.current = connection;
 
     const handleIncoming = (payload) => {
       const notification = normalizeNotification(payload);
@@ -97,35 +100,37 @@ export function NotificationProvider({ children }) {
       showToast('success', notification.message);
     };
 
-    socket.on('connect', () => {
-      socket.emit('notifications:join', { userId: user.id, role: user.applyAs });
-      socket.emit('joinNotifications', { userId: user.id });
-      socket.emit('join', { userId: user.id });
-      refreshNotifications();
-    });
+    const handleRead = (payload) => {
+      const notificationId = payload?.notificationId;
+      if (!notificationId) return;
 
-    socket.on('notification', handleIncoming);
-    socket.on('notifications:new', handleIncoming);
-    socket.on('notification:new', handleIncoming);
-    socket.on('ticket:purchased', handleIncoming);
-    socket.on('event:approved', handleIncoming);
-    socket.on('event:rejected', handleIncoming);
+      setNotifications((current) => current.map((notification) => (
+        String(notification.id) === String(notificationId)
+          ? { ...notification, unread: false, isRead: true }
+          : notification
+      )));
+    };
 
-    socket.connect();
+    connection.on('notification:new', handleIncoming);
+    connection.on('notification:read', handleRead);
+
+    connection.start()
+      .then(() => refreshNotifications())
+      .catch((error) => {
+        console.error('Failed to connect notifications hub:', error);
+      });
 
     pollRef.current = setInterval(() => {
       refreshNotifications();
     }, 30000);
 
     return () => {
-      socket.off('notification', handleIncoming);
-      socket.off('notifications:new', handleIncoming);
-      socket.off('notification:new', handleIncoming);
-      socket.off('ticket:purchased', handleIncoming);
-      socket.off('event:approved', handleIncoming);
-      socket.off('event:rejected', handleIncoming);
-      socket.disconnect();
-      socketRef.current = null;
+      connection.off('notification:new', handleIncoming);
+      connection.off('notification:read', handleRead);
+      if (connection.state !== HubConnectionState.Disconnected) {
+        connection.stop();
+      }
+      connectionRef.current = null;
 
       if (pollRef.current) {
         clearInterval(pollRef.current);

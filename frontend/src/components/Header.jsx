@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { useState, useContext } from 'react';
+import { useEffect, useRef, useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { NotificationContext } from '../context/NotificationContext';
 import ProfileDropdown from './ProfileDropdown';
@@ -8,6 +8,7 @@ import { isPendingOrganizer } from '../utils/accountStatus';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [bellPulsing, setBellPulsing] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '');
   const navigate = useNavigate();
@@ -15,8 +16,21 @@ export default function Header() {
   const { isAuthenticated, user } = useContext(AuthContext);
   const { notifications = [], unreadCount, markNotificationAsRead } = useContext(NotificationContext);
   const pendingOrganizer = isPendingOrganizer(user);
+  const previousUnreadCount = useRef(unreadCount);
 
   const isEventsPage = location.pathname === '/events';
+
+  useEffect(() => {
+    if (unreadCount > previousUnreadCount.current) {
+      setBellPulsing(true);
+      const timer = setTimeout(() => setBellPulsing(false), 900);
+      previousUnreadCount.current = unreadCount;
+      return () => clearTimeout(timer);
+    }
+
+    previousUnreadCount.current = unreadCount;
+    return undefined;
+  }, [unreadCount]);
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -189,6 +203,7 @@ export default function Header() {
                       fontSize: '1.5rem',
                       transition: 'all 0.3s',
                     }}
+                    className={bellPulsing ? 'notification-bell notification-bell--pulse' : 'notification-bell'}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.boxShadow = '0 0 10px rgba(230, 57, 70, 0.3)';
                       e.currentTarget.style.transform = 'scale(1.05)';
