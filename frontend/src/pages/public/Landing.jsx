@@ -51,6 +51,43 @@ export default function Landing() {
 
   const currentEvent = featuredEvents[currentEventIndex] || featuredEvents[0] || {};
   const currentEventBooked = bookedEventIds.has(String(currentEvent?.id));
+  const heroPrimaryButtonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textDecoration: 'none',
+    backgroundColor: '#E63946',
+    color: '#ffffff',
+    border: '2px solid #E63946',
+    borderRadius: '16px',
+    width: '240px',
+    height: '64px',
+    fontSize: '1.05rem',
+    fontWeight: '700',
+    boxShadow: 'none',
+    padding: '0 1.5rem',
+    lineHeight: 1,
+    flex: '0 0 auto',
+  };
+
+  const heroSecondaryButtonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textDecoration: 'none',
+    backgroundColor: 'transparent',
+    color: '#ffffff',
+    border: '2px solid #ffffff',
+    borderRadius: '16px',
+    width: '240px',
+    height: '64px',
+    fontSize: '1.05rem',
+    fontWeight: '700',
+    boxShadow: 'none',
+    padding: '0 1.5rem',
+    lineHeight: 1,
+    flex: '0 0 auto',
+  };
 
   return (
     <div className="landing-page">
@@ -129,16 +166,16 @@ export default function Landing() {
           }}>
             <Link
               to="/events"
-              className="btn btn-primary"
-              style={{ textDecoration: 'none' }}
+              className="hero-primary-cta"
+              style={heroPrimaryButtonStyle}
             >
               Explore Events
             </Link>
             {!isAuthenticated && (
               <Link
                 to="/signup"
-                className="btn btn-secondary"
-                style={{ textDecoration: 'none' }}
+                className="hero-secondary-cta"
+                style={heroSecondaryButtonStyle}
               >
                 Create Account
               </Link>
@@ -272,31 +309,7 @@ export default function Landing() {
                 {currentEvent.description || 'Experience an amazing event with great atmosphere and unforgettable memories.'}
               </p>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                {!isAdmin && !isOrganizer && (
-                  currentEventBooked ? (
-                    <span
-                      className="btn btn-primary"
-                      style={{ textDecoration: 'none', backgroundColor: '#eef7f6', color: '#087f5b', borderColor: '#cdebe3', cursor: 'default' }}
-                    >
-                      Booked
-                    </span>
-                  ) : (
-                    <Link
-                      to={currentEvent.id ? `/events/${currentEvent.id}` : '/events'}
-                      className="btn btn-primary"
-                      style={{ textDecoration: 'none' }}
-                    >
-                      Book Now
-                    </Link>
-                  )
-                )}
-                <Link
-                  to={currentEvent.id ? `/events/${currentEvent.id}` : '/events'}
-                  className="btn btn-secondary"
-                  style={{ textDecoration: 'none' }}
-                >
-                  More Info
-                </Link>
+                {/* Preview only: no direct action buttons in featured event card */}
               </div>
             </div>
           </div>
