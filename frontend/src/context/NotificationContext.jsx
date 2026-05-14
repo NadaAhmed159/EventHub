@@ -5,8 +5,6 @@ import { AuthContext } from './AuthContext';
 
 export const NotificationContext = createContext();
 
-let idCounter = 1;
-
 function normalizeNotification(notification) {
   if (!notification) return null;
 
@@ -21,11 +19,9 @@ function normalizeNotification(notification) {
 
 export function NotificationProvider({ children }) {
   const { user, isAuthenticated } = useContext(AuthContext);
-  const [toasts, setToasts] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const connectionRef = useRef(null);
   const pollRef = useRef(null);
-  const EXIT_ANIM_MS = 320;
 
   const refreshNotifications = useCallback(async () => {
     if (!isAuthenticated || !user?.id) {
@@ -96,8 +92,6 @@ export function NotificationProvider({ children }) {
 
         return [notification, ...current];
       });
-
-      showToast('success', notification.message);
     };
 
     const handleRead = (payload) => {
@@ -144,28 +138,6 @@ export function NotificationProvider({ children }) {
     [notifications]
   );
 
-  const startClose = useCallback((id) => {
-    setToasts((t) => t.map((x) => (x.id === id ? { ...x, closing: true } : x)));
-    // remove after exit animation
-    setTimeout(() => {
-      setToasts((t) => t.filter((x) => x.id !== id));
-    }, EXIT_ANIM_MS);
-  }, []);
-
-  const showToast = useCallback((type, message, duration = 4000) => {
-    const id = idCounter++;
-    setToasts((t) => [...t, { id, type, message, closing: false }]);
-    if (duration > 0) {
-      setTimeout(() => startClose(id), duration);
-    }
-    return id;
-  }, [startClose]);
-
-  const removeToast = useCallback((id) => {
-    // trigger exit animation then remove
-    startClose(id);
-  }, [startClose]);
-
   const markNotificationAsRead = useCallback(async (notificationId) => {
     try {
       await notificationService.markAsRead(notificationId);
@@ -182,40 +154,12 @@ export function NotificationProvider({ children }) {
 
   return (
     <NotificationContext.Provider value={{
-      showToast,
-      removeToast,
       notifications,
       unreadCount,
       refreshNotifications,
       markNotificationAsRead,
     }}>
       {children}
-      <div style={{ position: 'fixed', right: '20px', bottom: '20px', zIndex: 9999 }}>
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`app-toast ${toast.type === 'error' ? 'app-toast--error' : ''} ${toast.closing ? 'app-toast--closing' : ''}`}
-            style={{
-              minWidth: '280px',
-              marginBottom: '10px',
-              backgroundColor: toast.type === 'error' ? '#fff4f6' : '#0f5132',
-              color: toast.type === 'error' ? '#842029' : '#d1e7dd',
-              border: toast.type === 'error' ? '1px solid #f5c2c7' : '1px solid rgba(15,81,50,0.75)',
-              padding: '12px 14px',
-              borderRadius: '8px',
-              boxShadow: '0 10px 30px rgba(2,6,23,0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              fontWeight: 600,
-            }}
-          >
-            <div style={{ fontSize: '1.2rem' }}>{toast.type === 'error' ? '⚠' : '✓'}</div>
-            <div style={{ flex: 1 }}>{toast.message}</div>
-            <button onClick={() => removeToast(toast.id)} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontWeight: 700 }}>✕</button>
-          </div>
-        ))}
-      </div>
     </NotificationContext.Provider>
   );
 }

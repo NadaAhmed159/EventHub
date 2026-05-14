@@ -18,7 +18,6 @@ export default function EventDetail() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useContext(AuthContext);
-  const { showToast } = useContext(NotificationContext);
   const [selectedTicket, setSelectedTicket] = useState(0);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -144,8 +143,6 @@ export default function EventDetail() {
         queryClient.invalidateQueries({ queryKey: ['event', id] }),
         queryClient.invalidateQueries({ queryKey: ['events'] }),
       ]);
-      // show toast instead of redirecting
-      if (showToast) showToast('success', 'Ticket booked successfully!');
     } catch (err) {
       const backendMessage = typeof err.response?.data === 'string'
         ? err.response.data
@@ -183,8 +180,6 @@ export default function EventDetail() {
         queryClient.invalidateQueries({ queryKey: ['event-reviews', id] }),
         queryClient.invalidateQueries({ queryKey: ['my-reviews'] }),
       ]);
-
-      if (showToast) showToast('success', 'Review submitted successfully!');
     } catch (err) {
       setReviewError(err.response?.data?.message || 'Failed to submit review. Please try again.');
     } finally {
@@ -309,10 +304,9 @@ export default function EventDetail() {
     ? event.reviews.filter((review) => String(review.userId) === String(user?.id))
     : [];
   const attachments = Array.isArray(event.attachments) ? event.attachments : [];
-  const buildAttachmentUrl = (path) => {
-    if (!path) return '#';
-    if (/^https?:\/\//i.test(path)) return path;
-    return `${API_BASE_URL}/${String(path).replace(/^\/+/, '')}`;
+  const buildAttachmentUrl = (attachmentId) => {
+    if (!attachmentId) return '#';
+    return `${API_BASE_URL}/api/attachment/download/${attachmentId}`;
   };
   const ticketTiers = [
     { name: 'Ticket', price: getEventPrice(event), quantity: availableTickets, description: 'General admission access' },
@@ -652,7 +646,7 @@ export default function EventDetail() {
                     return (
                       <a
                         key={attachment.id || filePath}
-                        href={buildAttachmentUrl(filePath)}
+                        href={buildAttachmentUrl(attachment.id)}
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: '#E63946', fontWeight: 700, textDecoration: 'none', padding: '0.75rem', border: '1px solid #f0f0f0', borderRadius: '8px', backgroundColor: '#fff7f7' }}

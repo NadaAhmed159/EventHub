@@ -77,6 +77,55 @@ namespace EventHub.API.Controllers
             return Ok(EventDtoMapper.ToAttachmentResponseDtos(items));
         }
 
+        [HttpGet("download/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Download(string id)
+        {
+            var attachment = await _attachmentService.GetByIdAsync(id);
+            if (attachment == null)
+                return NotFound();
+
+            var filePath = attachment.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+                return BadRequest("File path not found");
+
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+            
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound("File not found on disk");
+
+            try
+            {
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(fullPath);
+                var fileName = Path.GetFileName(filePath);
+                var contentType = GetContentType(fileName);
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error downloading file: {ex.Message}");
+            }
+        }
+
+        private static string GetContentType(string fileName)
+        {
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            return ext switch
+            {
+                ".pdf" => "application/pdf",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".gif" => "image/gif",
+                ".txt" => "text/plain",
+                ".zip" => "application/zip",
+                _ => "application/octet-stream"
+            };
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.EventOrganizer)}")]
         public async Task<IActionResult> Delete(string id)
