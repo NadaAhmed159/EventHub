@@ -175,30 +175,6 @@ Swagger documentation is available after running the backend:
 https://localhost:{PORT}/swagger
 ```
 
----
-
-# 📸 Screenshots
-
-> Add screenshots here for:
-- Home Page
-- Organizer Dashboard
-- Admin Dashboard
-- Event Details
-- Booking Flow
-- QR Tickets
-
----
-
-# 🛣️ Future Improvements
-
-- Stripe / PayPal Integration
-- Docker Containerization
-- CI/CD Pipelines
-- Redis Caching
-- Cloud File Storage
-- Background Workers (Hangfire)
-
----
 
 # 🧠 Engineering Highlights
 
